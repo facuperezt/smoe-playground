@@ -1,0 +1,1 @@
+from .SMoE import VanillaSMoE as SmoeDecoder
