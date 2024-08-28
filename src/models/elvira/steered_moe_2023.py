@@ -1,3 +1,4 @@
+from typing import Literal
 import torch
 
 from src.models.components.encoders import CaeEncoder
@@ -9,7 +10,7 @@ __all__ = [
 ]
 
 class Elvira2023Full(torch.nn.Module):
-    def __init__(self, block_size: int = 16):
+    def __init__(self, block_size: Literal[8, 16] = 16):
         super().__init__()
         self.n_kernels = 4  # K = 4
         self.block_size = block_size  # 16 or 8 in the 2023 paper
@@ -44,10 +45,10 @@ class Elvira2023Full(torch.nn.Module):
         Returns:
             torch.Tensor: the loss
         """
-        return torch.nn.functional.mse_loss(output, input)
+        return {"loss": torch.nn.functional.mse_loss(output, input), "logging": None}
     
 class Elvira2023Small(torch.nn.Module):
-    def __init__(self, block_size: int = 16):
+    def __init__(self, block_size: Literal[8, 16] = 16):
         super().__init__()
         self.n_kernels = 4  # K = 4
         self.block_size = block_size  # 16 or 8 in the 2023 paper
@@ -65,15 +66,6 @@ class Elvira2023Small(torch.nn.Module):
             n_kernels=4,  # K = 4
             block_size=block_size,  # 16 or 8
         )
-
-    # def to(self, device):
-    #     super().to(device)
-    #     self.decoder.to(device)
-    #     return self
-
-    # def cuda(self):
-    #     self.to("cuda")
-    #     return self
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.encoder(x)
