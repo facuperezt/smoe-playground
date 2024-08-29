@@ -7,10 +7,10 @@ from src.models.components.encoders import AutoCaeEncoder, ManualCaeEncoder
 from src.models.components.decoders import SmoeDecoder
 
 __all__ = [
-    "VariationalAutoencoder",
+    "ConvolutionalAutoencoder",
 ]
 
-class VariationalAutoencoder(torch.nn.Module):
+class ConvolutionalAutoencoder(torch.nn.Module):
     def __init__(self, config_path: str):
         try:
             # First assume that the config_path is a relative or absolute path that's findable
@@ -23,9 +23,9 @@ class VariationalAutoencoder(torch.nn.Module):
         model_type = model_configs.pop("model_type", "").lower() 
         super().__init__()
         if model_type == "auto":
-            self.model = AutoVariationalAutoencoder(**model_configs)
+            self.model = AutoConvolutionalAutoencoder(**model_configs)
         elif model_type == "manual":
-            self.model = ManualVariationalAutoencoder(**model_configs)
+            self.model = ManualConvolutionalAutoencoder(**model_configs)
         elif model_type == "":
             raise ValueError("JSON config needs to specify a model_type.")
         else:
@@ -55,7 +55,7 @@ class VariationalAutoencoder(torch.nn.Module):
     def loss(self, input: torch.Tensor, output: Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor], extra_information: torch.Tensor) -> Dict[str, Union[torch.Tensor, Any]]:
         return self.model.loss(input, output, extra_information)
 
-class AutoVariationalAutoencoder(torch.nn.Module):
+class AutoConvolutionalAutoencoder(torch.nn.Module):
     def __init__(self, encoder_configs: Dict[str, Any], smoe_configs: Dict[str, Any], loss_configs: Dict[str, Any]):
         super().__init__()
         self.beta = loss_configs["beta"]
@@ -104,7 +104,7 @@ class AutoVariationalAutoencoder(torch.nn.Module):
         total_loss = recons_loss + self.beta*kld_loss
         return {"loss": total_loss, "logging": {"KLDiv Loss": kld_loss.item(), "Reconstruction Loss": recons_loss.item()}}
     
-class ManualVariationalAutoencoder(AutoVariationalAutoencoder):
+class ManualConvolutionalAutoencoder(AutoConvolutionalAutoencoder):
     def __init__(self, encoder_configs: Dict[str, Any], smoe_configs: Dict[str, Any], loss_configs: Dict[str, Any]):
         torch.nn.Module.__init__(self)
         self.beta = loss_configs["beta"]

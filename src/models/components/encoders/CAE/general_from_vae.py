@@ -8,12 +8,12 @@ from src.models.components.blocks import GeneralConvBlock, GeneralLinearBlock, S
 
 
 __all__ = [
-    'GeneralAutoVAE',
-    'GeneralManualVAE'
+    'GeneralAutoCAE',
+    'GeneralManualCAE'
 ]
 
 
-class VAE(torch.nn.Module):
+class CAE(torch.nn.Module):
     def __init__(self,
                  in_channels: int = 1,
                  n_kernels: int = 4,
@@ -48,8 +48,7 @@ class VAE(torch.nn.Module):
             self.lin
         )
 
-        self.fc_mean = torch.nn.Linear(in_channels, self.latent_dim)
-        self.fc_log_var = torch.nn.Linear(in_channels, self.latent_dim)
+        self.fc = torch.nn.Linear(in_channels, self.latent_dim)
 
         self.output_nonlinearities = SmoeActivations(
             (2*n_kernels, 1*n_kernels, 4*n_kernels),
@@ -107,33 +106,15 @@ class VAE(torch.nn.Module):
         # result = self.encoder(result)
         for layer in self.encoder:
             result = layer(result)
-        
-        mean = self.fc_mean(result)
-        log_var = self.fc_log_var(result)
-        return [mean, log_var]
-    
-    def reparameterize(self, mu: torch.Tensor, logvar: torch.Tensor) -> torch.Tensor:
-        """
-        Reparameterization trick to sample from N(mu, var) from
-        N(0,1).
-        :param mu: (Tensor) Mean of the latent Gaussian [B x D]
-        :param logvar: (Tensor) Standard deviation of the latent Gaussian [B x D]
-        :return: (Tensor) [B x D]
-        """
-        std = torch.exp(0.5 * logvar)
-        eps = torch.randn_like(std)
-        out = eps * std + mu
-        out = self.output_nonlinearities(out)
-        return out
+        return self.fc(result)
     
     def forward(self, x: torch.Tensor, **kwargs) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         if len(x.shape) == 3:
             x = x[:, None, :, :]
-        mu, log_var = self.encode(x)
-        z = self.reparameterize(mu, log_var)
-        return z, mu, log_var
+        x = self.encode(x)
+        return self.output_nonlinearities(x)
 
-class GeneralAutoVAE(VAE):
+class GeneralAutoCAE(CAE):
     def __init__(
             self,
             in_channels: int = 1,
@@ -193,7 +174,7 @@ class GeneralAutoVAE(VAE):
             (xy_nonlinearity, nu_nonlinearity, steer_nonlinearity)
             )
         
-class GeneralManualVAE(VAE):
+class GeneralManualCAE(CAE):
     def __init__(
             self,
             in_channels: int = 1,
@@ -254,7 +235,7 @@ class GeneralManualVAE(VAE):
             (2*n_kernels, 1*n_kernels, 4*n_kernels),
             (xy_nonlinearity, nu_nonlinearity, steer_nonlinearity)
             )
-
+        
     def _build_conv_layers(
                 self,
                 in_channels: int,

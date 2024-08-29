@@ -1,1 +1,1 @@
-from .general import *
+from .general_from_vae import *
