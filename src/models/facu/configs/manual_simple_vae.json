@@ -1,0 +1,49 @@
+{
+    "model_type": "manual",
+    
+    "smoe_configs": {
+        "n_kernels": 4,
+        "block_size": 16,
+        "kernels_outside": false,
+        "negative_experts": false
+    },
+
+    "encoder_configs": {
+        "hidden_dims": {
+            "conv": [16, 16, 32, 32, 64],
+            "lin": [64, 32, 32, 32, 16]
+        },
+        "downsample": {
+            "conv": [false, true, true, true, true],
+            "lin": "get's ignored anyway"
+        },
+        "batch_norm": {
+            "conv": [true, true, true, true, true],
+            "lin": [true, true, true, true, false]
+        },
+        "bias": {
+            "conv": [false, false, false, false, false],
+            "lin": [false, false, false, false, true]
+        },
+        "residual": {
+            "conv": [false, false, false, false, false],
+            "lin": [false, false, false, false, false]
+        },
+        "activation": {
+            "conv": ["swish", "swish", "swish", "swish", "swish"],
+            "lin": ["swish", "swish", "swish", "swish", "swish"]
+        },
+        "order": {
+            "conv": ["lbad", "lbad", "lbad", "lbad", "lbad"],
+            "lin": ["lbad", "lbad", "lbad", "lbad", "lbad"]
+        },
+        "dropout": {
+            "conv": [0.1, 0.1, 0.1, 0.1, 0.1],
+            "lin": [0.2, 0.2, 0.2, 0.2, 0.2]
+        }
+    },
+
+    "loss_configs": {
+        "beta": 0.1
+    }
+}

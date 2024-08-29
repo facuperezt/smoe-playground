@@ -1,8 +1,9 @@
 from src.models.elvira import Elvira2023Small
-from src.trainers import TrainWithDataloader
+from src.models.facu import VariationalAutoencoder
+from src.trainers import TrainWithSyntheticData
 
 if __name__ == "__main__":
-    model = Elvira2023Small(block_size=16)
-    trainer = TrainWithDataloader(model)
+    model = VariationalAutoencoder("auto_simple_vae.json")
+    trainer = TrainWithSyntheticData(model)
 
-    trainer.train(5)
+    trainer.train(10)

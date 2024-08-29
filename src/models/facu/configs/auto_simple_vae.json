@@ -1,4 +1,6 @@
 {
+    "model_type": "Auto",
+    
     "smoe_configs": {
         "n_kernels": 4,
         "block_size": 16,
@@ -12,28 +14,33 @@
             "lin": [64, 32, 32, 32, 16]
         },
         "downsample": {
-            "conv": [],
-            "lin": []
+            "conv": true,
+            "min_block_size": 2,
+            "block_size_reduction": 2
         },
         "batch_norm": {
-            "conv": [],
-            "lin": []
+            "conv": true,
+            "lin": false
         },
         "bias": {
-            "conv": [],
-            "lin": []
+            "conv": false,
+            "lin": true
         },
         "residual": {
-            "conv": [],
-            "lin": []
-        },
-        "order": {
-            "conv": [],
-            "lin": []
+            "conv": false,
+            "lin": false
         },
         "activation": {
-            "conv": [],
-            "lin": []
+            "conv": "swish",
+            "lin": "swish"
+        },
+        "order": {
+            "conv": "lbad",
+            "lin": "lbad"
+        },
+        "dropout": {
+            "conv": 0.1,
+            "lin": 0.2
         }
     },
 

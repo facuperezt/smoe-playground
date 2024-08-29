@@ -101,7 +101,7 @@ class DataLoader:
     def get(self, *args, **kwargs):
         if self.mode == "synthetic":
             out =  self.get_m_blocks_with_n_kernels(*args, **kwargs)
-            return self.decoder(out).transpose(1,0)
+            return {"input": self.decoder(out), "loss": out}
         elif self.mode == "dataset":
             out: torch.Tensor = next(self._dataset_train)
             if out.numel() == 0:

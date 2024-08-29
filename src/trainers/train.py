@@ -3,10 +3,10 @@ import tqdm
 from src.data import DataLoader
 
 __all__ = [
-    "TrainWithDataloader",
+    "TrainWithSyntheticData",
 ]
 
-class TrainWithDataloader:
+class TrainWithSyntheticData:
     def __init__(self, model: torch.nn.Module):
         self.model = model
         self.dataloader = DataLoader("synthetic", self.model.n_kernels, self.model.block_size)  # generate synthetic data
@@ -19,9 +19,9 @@ class TrainWithDataloader:
         for epoch in tqdm.tqdm(range(epochs)):
             optim.zero_grad()
             data = self.dataloader.get(m=100)  # m blocks
-            out = self.model(data)
-            loss = self.model.loss(data, out)
-            loss.backward()
+            out = self.model(data["input"])
+            loss = self.model.loss(data["input"], out, data["loss"])
+            loss["loss"].backward()
             optim.step()
 
         return self.model

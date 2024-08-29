@@ -16,7 +16,7 @@ class VanillaSMoE(torch.nn.Module):
 
     def forward(self, x: torch.Tensor) -> np.ndarray:
         if x.ndim == 2:
-            x = [x]
+            return self.torch_smoe(x)
         return torch.stack([self.torch_smoe(_x) for _x in x])
 
     def to(self, device: torch.device):
@@ -60,4 +60,4 @@ class VanillaSMoE(torch.nn.Module):
         res = torch.clamp(res, min=0, max=1)
         res = res.view(-1, block_size, block_size)
 
-        return res
+        return res.reshape(-1, 1, block_size, block_size)

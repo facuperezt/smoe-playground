@@ -9,6 +9,7 @@ from src.models.components.blocks import GeneralConvBlock, GeneralLinearBlock, S
 
 __all__ = [
     'GeneralAutoVAE',
+    'GeneralManualVAE'
 ]
 
 
@@ -152,7 +153,7 @@ class GeneralAutoVAE(VAE):
             **kwargs
         ) -> None:
         if downsample is None:
-            downsample = {"active": False}
+            downsample = {"conv": False}
         if batch_norm is None:
             batch_norm = {"conv": False, "lin": False}
         if bias is None:
@@ -168,10 +169,10 @@ class GeneralAutoVAE(VAE):
         ### Convolutional layers ###
         conv_block = partial(GeneralConvBlock, batch_norm=batch_norm["conv"], bias=bias["conv"], residual=residual["conv"], dropout=dropout["conv"], order=order["conv"], activation=activation["conv"])
         lin_block = partial(GeneralLinearBlock, batch_norm=batch_norm["lin"], bias=bias["lin"], residual=residual["lin"], dropout=dropout["lin"], order=order["lin"], activation=activation["lin"])
-        if downsample["active"]:
+        if downsample["conv"]:
             self._build_conv_layers = partial(
                 self._build_conv_layers,
-                downsample=downsample["active"],
+                downsample=downsample["conv"],
                 min_block_size=downsample.get("min_block_size", 2),
                 block_size_reduction=downsample.get("block_size_reduction", 2)
             )
@@ -232,10 +233,10 @@ class GeneralManualVAE(VAE):
 
         ### prepare conv layers ###
         for i in range(len(hidden_dims_conv)):
-            conv_blocks.append(partial(GeneralConvBlock, batch_norm=batch_norm["conv"], bias=bias["conv"], residual=residual["conv"], dropout=dropout["conv"], order=order["conv"], activation=activation["conv"], stride=downsample_factor["conv"]))
+            conv_blocks.append(partial(GeneralConvBlock, batch_norm=batch_norm["conv"][i], bias=bias["conv"][i], residual=residual["conv"][i], dropout=dropout["conv"][i], order=order["conv"][i], activation=activation["conv"][i], stride=downsample_factor["conv"][i]))
         ### prepare conv layers ###
         for i in range(len(hidden_dims_lin)):
-            lin_blocks.append(partial(GeneralLinearBlock, batch_norm=batch_norm["lin"], bias=bias["lin"], residual=residual["lin"], dropout=dropout["lin"], order=order["lin"], activation=activation["lin"]))
+            lin_blocks.append(partial(GeneralLinearBlock, batch_norm=batch_norm["lin"][i], bias=bias["lin"][i], residual=residual["lin"][i], dropout=dropout["lin"][i], order=order["lin"][i], activation=activation["lin"][i]))
 
         super().__init__(in_channels, n_kernels, block_size, hidden_dims_conv, hidden_dims_lin, conv_blocks, lin_blocks, **kwargs)
         
