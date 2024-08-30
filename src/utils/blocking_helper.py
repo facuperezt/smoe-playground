@@ -193,9 +193,9 @@ class BlockImgBlock(torch.nn.Module):
         x = torch.nn.functional.pad(x, ( 0, pad_h, 0, pad_w, 0, pad_c))
         patches = x.unfold(1, kc, dc).unfold(2, kh, dh).unfold(3, kw, dw)
         unfold_shape = patches.size()
-        patches = patches.reshape(unfold_shape[0]*unfold_shape[1]*unfold_shape[2]*unfold_shape[3], unfold_shape[4], unfold_shape[5], unfold_shape[6]).squeeze()
+        patches = patches.reshape(unfold_shape[0]*unfold_shape[1]*unfold_shape[2]*unfold_shape[3], unfold_shape[4], unfold_shape[5], unfold_shape[6])
         BlockImgBlock._last_unfolded_shape = unfold_shape
-        print(unfold_shape)
+        # print(unfold_shape)
         return patches
 
     def fold_tensor (self, x, shape_x: torch.Tensor = None):

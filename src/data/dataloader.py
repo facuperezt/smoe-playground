@@ -12,6 +12,7 @@ import threading
 import queue
 
 from src.models.components.decoders import SmoeDecoder
+from src.utils.blocking_helper import Img2Block
 
 def initialize_transforms(img_size: int = 512):
     transforms = v2.Compose([
@@ -51,6 +52,7 @@ class DataLoader:
             self.initialize(n_repeats, force_reinitialize)
             self._dataset_train = cycle(self._get("train", None))
             self.mode = "dataset"
+            self.img2blocks = Img2Block(block_size, img_size, 1)
         else:
             self.mode = "synthetic"
             self.decoder = SmoeDecoder(n_kernels, block_size, device)
@@ -108,7 +110,7 @@ class DataLoader:
                 out = next(self._dataset_train)
             if out.numel() == 0:
                 raise ValueError("Iterator be trippin")
-            return out
+            return {"input": self.img2blocks(out).to(self.device), "loss": None}
 
     def initialize(self, n_repeats: int = 3, force_reinitialize: bool = False) -> None:
         train_pkl_not_found = not os.path.exists(f"{self.training_data_path}/train.pkl")

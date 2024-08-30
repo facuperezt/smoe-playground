@@ -3,7 +3,7 @@ import os
 from typing import Any, Dict, Tuple, Union
 import torch
 
-from src.models.components.encoders import AutoCaeEncoder, ManualCaeEncoder
+from src.models.components.encoders import AutoVaeEncoder, ManualVaeEncoder
 from src.models.components.decoders import SmoeDecoder
 
 __all__ = [
@@ -61,7 +61,7 @@ class AutoVariationalAutoencoder(torch.nn.Module):
         self.beta = loss_configs["beta"]
         self.n_kernels = smoe_configs["n_kernels"]
         self.block_size = smoe_configs["block_size"]
-        self.encoder = AutoCaeEncoder(
+        self.encoder = AutoVaeEncoder(
             in_channels=1,
             n_kernels=self.n_kernels, 
             block_size=self.block_size,
@@ -73,6 +73,7 @@ class AutoVariationalAutoencoder(torch.nn.Module):
             batch_norm=encoder_configs["batch_norm"],
             bias=encoder_configs["bias"],
             residual=encoder_configs["residual"],
+            dropout=encoder_configs["dropout"],
             order=encoder_configs["order"],
             activation=encoder_configs["activation"],
         )
@@ -110,7 +111,7 @@ class ManualVariationalAutoencoder(AutoVariationalAutoencoder):
         self.beta = loss_configs["beta"]
         self.n_kernels = smoe_configs["n_kernels"]
         self.block_size = smoe_configs["block_size"]
-        self.encoder = ManualCaeEncoder(
+        self.encoder = ManualVaeEncoder(
             in_channels=1,
             n_kernels=self.n_kernels, 
             block_size=self.block_size,
@@ -118,10 +119,11 @@ class ManualVariationalAutoencoder(AutoVariationalAutoencoder):
             hidden_dims_lin=encoder_configs["hidden_dims"]["lin"],
             kernels_outside=smoe_configs["kernels_outside"],
             negative_experts=smoe_configs["negative_experts"],
-            downsample=encoder_configs["downsample"],
+            downsample_factor=encoder_configs["downsample_factor"],
             batch_norm=encoder_configs["batch_norm"],
             bias=encoder_configs["bias"],
             residual=encoder_configs["residual"],
+            dropout=encoder_configs["dropout"],
             order=encoder_configs["order"],
             activation=encoder_configs["activation"],
         )

@@ -234,7 +234,7 @@ class GeneralManualVAE(VAE):
         ### prepare conv layers ###
         for i in range(len(hidden_dims_conv)):
             conv_blocks.append(partial(GeneralConvBlock, batch_norm=batch_norm["conv"][i], bias=bias["conv"][i], residual=residual["conv"][i], dropout=dropout["conv"][i], order=order["conv"][i], activation=activation["conv"][i], stride=downsample_factor["conv"][i]))
-        ### prepare conv layers ###
+        ### prepare lin layers ###
         for i in range(len(hidden_dims_lin)):
             lin_blocks.append(partial(GeneralLinearBlock, batch_norm=batch_norm["lin"][i], bias=bias["lin"][i], residual=residual["lin"][i], dropout=dropout["lin"][i], order=order["lin"][i], activation=activation["lin"][i]))
 
