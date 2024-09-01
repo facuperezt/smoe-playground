@@ -33,5 +33,5 @@ def finetune_with_real_data():
 
 
 if __name__ == "__main__":
-    # train_with_synth_data()
+    train_with_synth_data()
     finetune_with_real_data()

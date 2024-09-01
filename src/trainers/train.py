@@ -61,7 +61,7 @@ class TrainWithSyntheticData(Trainer):
     def __init__(self, model: torch.nn.Module):
         super().__init__(model)
         self.dataloader = DataLoader("synthetic", self.model.n_kernels, self.model.block_size)  # generate synthetic data
-        self._get_data = lambda: self.dataloader.get(m=4000)
+        self._get_data = lambda: self.dataloader.get(m=3000)
 
 
 class TrainWithRealData(Trainer):
