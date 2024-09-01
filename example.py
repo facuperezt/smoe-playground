@@ -8,7 +8,7 @@ def get_class_name(instance) -> str:
 
 def train_with_synth_data():
     # model = VariationalAutoencoder("manual_simple_ae.json")
-    model = VariationalAutoencoder("manual_simple_ae.json")
+    model = VariationalAutoencoder("wide/manual_simple_ae.json")
     # model.load_state_dict(torch.load("vae_synth_data.pth"))
     trainer = TrainWithSyntheticData(model)
     try:
@@ -21,7 +21,7 @@ def train_with_synth_data():
 
 def finetune_with_real_data():
     # model = VariationalAutoencoder("manual_simple_ae.json")
-    model = VariationalAutoencoder("manual_simple_ae.json")
+    model = VariationalAutoencoder("wide/manual_simple_ae.json")
     model.load_state_dict(torch.load(f"{get_class_name(model)}_synth_data.pth"))
     trainer = TrainWithRealData(model)
     try:
@@ -33,5 +33,5 @@ def finetune_with_real_data():
 
 
 if __name__ == "__main__":
-    # train_with_synth_data()
+    train_with_synth_data()
     finetune_with_real_data()

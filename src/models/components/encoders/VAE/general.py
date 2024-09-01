@@ -259,7 +259,7 @@ class GeneralManualVAE(VAE):
                 self,
                 in_channels: int,
                 hidden_dims_conv: List[int],
-                conv_blocks: List[partial[GeneralConvBlock]],
+                conv_blocks: List[GeneralConvBlock],
                 curr_block_size: Optional[int] = None,
             ) -> torch.nn.Sequential:
         if curr_block_size is None:
