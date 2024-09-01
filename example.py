@@ -12,7 +12,7 @@ def train_with_synth_data():
     # model.load_state_dict(torch.load("vae_synth_data.pth"))
     trainer = TrainWithSyntheticData(model)
     try:
-        trainer.train(r"C:\Users\fq\Facu\smoe\src\trainers\configs\simple_training.json")
+        trainer.train("src/trainers/configs/simple_training.json")
     except Exception as e:
         print(e)
     finally:
@@ -25,7 +25,7 @@ def finetune_with_real_data():
     model.load_state_dict(torch.load(f"{get_class_name(model)}_synth_data.pth"))
     trainer = TrainWithRealData(model)
     try:
-        trainer.train(r"C:\Users\fq\Facu\smoe\src\trainers\configs\simple_training.json")
+        trainer.train("src/trainers/configs/simple_training.json")
     except Exception as e:
         print(e)
     finally:
@@ -33,5 +33,5 @@ def finetune_with_real_data():
 
 
 if __name__ == "__main__":
-    train_with_synth_data()
+    # train_with_synth_data()
     finetune_with_real_data()
