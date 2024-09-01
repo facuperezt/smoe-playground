@@ -27,7 +27,7 @@ class Trainer:
         )
         wandb.config = {"train_configs": cfg, "model_configs": self.model.cfg}
         optim = torch.optim.AdamW(self.model.parameters(), lr=cfg["learning_rate"])
-        sched_lr = LogarithmicResetLRScheduler(optim)
+        # sched_lr = LogarithmicResetLRScheduler(optim)
         self.model.to("cuda")
         self.model.train()
         pbar = tqdm.tqdm(total=cfg["epochs"], desc=f"loss: {0.00:.5f}")
@@ -37,9 +37,10 @@ class Trainer:
             out = self.model(data["input"])
             loss = self.model.loss(data["input"], out, data["loss"])
             loss["loss"].backward()
-            wandb.log({"loss": loss, "learning_rate": sched_lr.get_lr()[0]})
+            wandb.log(loss)
+            # wandb.log({"loss": loss, "learning_rate": sched_lr.get_lr()[0]})
             optim.step()
-            sched_lr.step(loss["loss"].item())
+            # sched_lr.step(loss["loss"].item())
             pbar.update(epoch - pbar.n)
             pbar.desc = f"loss: {loss['loss'].item():.5f}"
 

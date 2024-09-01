@@ -44,6 +44,6 @@
     },
 
     "loss_configs": {
-        "beta": 1e-6
+        "beta": 1e-7
     }
 }
