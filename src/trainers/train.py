@@ -1,59 +1,70 @@
+import json
+from typing import Any, Dict
 import torch
 import tqdm
 from src.data import DataLoader
 from src.trainers.schedulers import LogarithmicResetLRScheduler
+import wandb
 
 __all__ = [
     "TrainWithSyntheticData",
     "TrainWithRealData"
 ]
 
-class TrainWithSyntheticData:
+class Trainer:
     def __init__(self, model: torch.nn.Module):
-        self.model = model
+        self._model = model
+        self._get_data = None
+
+    def train(self, cfg_path: str):
+        with open(cfg_path, "r") as f:
+            cfg: Dict[str, Any] = json.load(f)
+        run = wandb.init(
+            project=cfg.pop("project"),
+            notes=cfg.pop("notes", ""),
+            tags=cfg.pop("tags", ""),
+            mode="online",
+        )
+        wandb.config = {"train_configs": cfg, "model_configs": self.model.cfg}
+        optim = torch.optim.AdamW(self.model.parameters(), lr=cfg["learning_rate"])
+        sched_lr = LogarithmicResetLRScheduler(optim)
+        self.model.to("cuda")
+        self.model.train()
+        pbar = tqdm.tqdm(total=cfg["epochs"], desc=f"loss: {0.00:.5f}")
+        for epoch in range(int(cfg["epochs"])):
+            optim.zero_grad()
+            data = self.get_data()
+            out = self.model(data["input"])
+            loss = self.model.loss(data["input"], out, data["loss"])
+            loss["loss"].backward()
+            wandb.log({"loss": loss, "learning_rate": sched_lr.get_lr()[0]})
+            optim.step()
+            sched_lr.step(loss["loss"].item())
+            pbar.update(epoch - pbar.n)
+            pbar.desc = f"loss: {loss['loss'].item():.5f}"
+
+        wandb.log_artifact(self.model)
+        return self.model
+
+    @property
+    def model(self) -> torch.nn.Module:
+        return self._model
+    
+    def get_data(self) -> Any:
+        if self._get_data is None:
+            raise RuntimeError("You have to store a function in self._get_data.")
+        return self._get_data()
+
+
+class TrainWithSyntheticData(Trainer):
+    def __init__(self, model: torch.nn.Module):
+        super().__init__(model)
         self.dataloader = DataLoader("synthetic", self.model.n_kernels, self.model.block_size)  # generate synthetic data
- 
-    def train(self, epochs: int = 10, lr: float = 1e-5):
-        optim = torch.optim.AdamW(self.model.parameters(), lr=lr)
-        sched_lr = LogarithmicResetLRScheduler(optim)
-        self.model.to("cuda")
-        self.model.train()
-        pbar = tqdm.tqdm(total=epochs, desc=f"loss: {0.00:.5f}")
-        for epoch in range(epochs):
-            optim.zero_grad()
-            data = self.dataloader.get(m=15000)  # m blocks
-            out = self.model(data["input"])
-            loss = self.model.loss(data["input"], out, data["loss"])
-            loss["loss"].backward()
-            optim.step()
-            sched_lr.step(loss["loss"].item())
-            pbar.update(epoch - pbar.n)
-            pbar.desc = f"loss: {loss['loss'].item():.5f}"
-
-        return self.model
+        self._get_data = lambda: self.dataloader.get(m=4000)
 
 
-class TrainWithRealData:
+class TrainWithRealData(Trainer):
     def __init__(self, model: torch.nn.Module):
-        self.model = model
-        self.dataloader = DataLoader("dataset", self.model.n_kernels, self.model.block_size, "professional_photos", img_size=384, batch_size=25)  # get real data
- 
-    def train(self, epochs: int = 10, lr: float = 1e-5):
-        optim = torch.optim.AdamW(self.model.parameters(), lr=lr)
-        sched_lr = LogarithmicResetLRScheduler(optim)
-        self.model.to("cuda")
-        self.model.train()
-        pbar = tqdm.tqdm(total=epochs, desc=f"loss: {0.00:.5f}")
-        for epoch in range(epochs):
-            optim.zero_grad()
-            data = self.dataloader.get()  # m blocks
-            out = self.model(data["input"])
-            loss = self.model.loss(data["input"], out, data["loss"])
-            loss["loss"].backward()
-            optim.step()
-            sched_lr.step(loss["loss"].item())
-            pbar.update(epoch - pbar.n)
-            pbar.desc = f"loss: {loss['loss'].item():.5f}"
-
-        return self.model
-        
+        super().__init__(model)
+        self.dataloader = DataLoader("dataset", self.model.n_kernels, self.model.block_size, "professional_photos", img_size=384, batch_size=5)  # get real data
+        self._get_data = self.dataloader.get       

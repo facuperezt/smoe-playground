@@ -10,8 +10,8 @@
 
     "encoder_configs": {
         "hidden_dims": {
-            "conv": [16, 16, 32, 32, 64, 64, 128, 128],
-            "lin": [64, 32, 32, 32, 16, 16]
+            "conv": [32, 32, 128, 128, 512, 512, 2048, 2048],
+        "lin": [5096, 1024, 256, 64, 64, 64]
         },
         "downsample_factor": {
             "conv": [1, 2, 1, 2, 1, 2, 1, 2],
@@ -27,11 +27,11 @@
         },
         "residual": {
             "conv": [true, false, true, false, true, false, true, false],
-            "lin": [false, false, true, true, false, true]
+            "lin": [false, false, false, false, true, true]
         },
         "activation": {
-            "conv": ["swish", "swish", "swish", "swish", "swish", "swish", "swish", "swish"],
-            "lin": ["swish", "swish", "swish", "swish", "swish", "swish"]
+            "conv": ["gelu", "gelu", "gelu", "gelu", "gelu", "gelu", "gelu", "gelu"],
+            "lin": ["gelu", "gelu", "gelu", "gelu", "gelu", "gelu"]
         },
         "order": {
             "conv": ["lbadr", "lbadr", "lbadr", "lbadr", "lbadr", "lbadr", "lbadr", "lbadr"],
@@ -44,6 +44,6 @@
     },
 
     "loss_configs": {
-        "beta": 0.0
+        "beta": 1e-6
     }
 }

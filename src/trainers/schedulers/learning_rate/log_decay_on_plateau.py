@@ -11,11 +11,12 @@ __all__ = [
 
 
 class LogarithmicResetLRScheduler(_LRScheduler):
-    def __init__(self, optimizer, factor=7e-4, patience=1, min_lr=1e-7, reset_factor=0.9, verbose=False):
+    def __init__(self, optimizer, factor=4e-3, patience=50, min_lr=1e-8, reset_factor=0.75, verbose=False):
         self.factor = factor
         self.patience = patience
         self.min_lr = min_lr
         self.reset_factor = reset_factor
+        self.initial_reset_factor = copy.deepcopy(reset_factor)
         self.verbose = verbose
         self.num_bad_epochs = 0
         self.best = None
@@ -30,7 +31,7 @@ class LogarithmicResetLRScheduler(_LRScheduler):
         else:
             current_lr = self.initial_lrs[0]
         if metrics is None:
-            metrics = torch.inf 
+            metrics = math.inf 
         if self.best is None or metrics < self.best:
             self.best = metrics
             self.num_bad_epochs = 0
@@ -49,8 +50,13 @@ class LogarithmicResetLRScheduler(_LRScheduler):
                 self.decay_steps = 0
                 for i, (param_group, initial_lr) in enumerate(zip(self.optimizer.param_groups, self.initial_lrs)):
                     new_lr = initial_lr * self.reset_factor
-                    param_group['lr'] = self.start_lrs[i] = new_lr
-                    self.reset_factor *= 0.9
+                    if new_lr > self.min_lr:
+                        param_group['lr'] = self.start_lrs[i] = new_lr
+                        self.reset_factor *= self.reset_factor
+                    else:
+                        param_group['lr'] = self.start_lrs[i] = self.min_lr
+                        self.initial_reset_factor *= self.initial_reset_factor
+                        self.reset_factor = self.initial_reset_factor
                 if self.verbose:
                     print(f'Resetting learning rate to {initial_lr * self.reset_factor:.6f}')
             self.num_bad_epochs = 0
@@ -79,7 +85,7 @@ if __name__ == "__main__":
     optim = torch.optim.SGD(DummyClass().parameters(), lr=1e-6)
     scheduler = LogarithmicResetLRScheduler(optim)
     vals = []
-    for i in range(10000):
+    for i in range(100000):
         scheduler.step(i)
         vals.append(optim.param_groups[0]["lr"])
     plt.plot(vals)

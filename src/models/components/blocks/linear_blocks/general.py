@@ -33,14 +33,15 @@ class GeneralLinearBlock(torch.nn.Module):
                  residual: bool = False,
                  dropout: float = 0.0,
                  order: str = "lbadr",
-                 activation: Union[torch.nn.Module, Literal["relu", "swish", "lrelu"]] = "relu",
+                 activation: Union[torch.nn.Module, Literal["relu", "swish", "lrelu", "gelu"]] = "relu",
                  ):
         super().__init__()
         if type(activation) == str:
             activation = {
                 "relu": torch.nn.ReLU(),
                 "swish": torch.nn.SiLU(),
-                "lrelu": torch.nn.LeakyReLU()
+                "lrelu": torch.nn.LeakyReLU(),
+                "gelu": torch.nn.GELU()
             }[activation]
         self.fc = torch.nn.Linear(in_features, out_features, bias=bias)
 

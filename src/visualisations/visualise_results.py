@@ -8,11 +8,13 @@ from src.models.facu import ConvolutionalAutoencoder, VariationalAutoencoder
 
 from src.utils import Img2Block, Block2Img
 
+def get_class_name(instance) -> str:
+    return repr(instance.__class__).strip("'>").split(".")[-1]
 
 model = VariationalAutoencoder("manual_simple_ae.json")
 img2block = Img2Block(model.block_size, 384)
 block2img = Block2Img(model.block_size, 384)
-model.load_state_dict(torch.load("vae_real_data_finetuned.pth"))
+model.load_state_dict(torch.load(f"{get_class_name(model)}_synth_data.pth"))
 #%%
 dataloader = DataLoader("dataset", data_path="professional_photos", img_size=384, batch_size=1)
 # %%
@@ -25,6 +27,6 @@ plt.imshow(img.squeeze().cpu(), vmin=0, vmax=1, cmap="gray")
 with torch.no_grad():
     out = model(img2block(img))
 
-plt.imshow(block2img(out[0]).detach().cpu().squeeze(), vmin=0, vmax=1, cmap="gray")
+plt.imshow(block2img(out[0]).detach().cpu().squeeze(), vmin=0, vmax=1, cmap="gray") 
 #%%
 # %%

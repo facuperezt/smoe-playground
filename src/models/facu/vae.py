@@ -1,3 +1,4 @@
+import copy
 import json
 import os
 from typing import Any, Dict, Tuple, Union
@@ -19,6 +20,7 @@ class VariationalAutoencoder(torch.nn.Module):
             # Then try to find it in the folder where the model is saved
             file = open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "configs", config_path), "r")
         model_configs: Dict[str] = json.load(file)
+        self.cfg = copy.deepcopy(model_configs)
         file.close()
         model_type = model_configs.pop("model_type", "").lower() 
         super().__init__()

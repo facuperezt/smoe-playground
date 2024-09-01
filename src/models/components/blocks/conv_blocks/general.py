@@ -41,14 +41,15 @@ class GeneralConvBlock(torch.nn.Module):
                  residual: bool = True,
                  dropout: float = 0.0,
                  order: str = "lbadr",
-                 activation: Union[torch.nn.Module, Literal["relu", "swish", "lrelu"]] = "relu",
+                 activation: Union[torch.nn.Module, Literal["relu", "swish", "lrelu", "gelu"]] = "relu",
                  ):
         super().__init__()
         if type(activation) == str:
             activation = {
                 "relu": torch.nn.ReLU(),
                 "swish": torch.nn.SiLU(),
-                "lrelu": torch.nn.LeakyReLU()
+                "lrelu": torch.nn.LeakyReLU(),
+                "gelu": torch.nn.GELU()
             }[activation]
         self.conv = torch.nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, stride=stride, padding=padding, bias=bias)
         if batch_norm:

@@ -190,7 +190,7 @@ class GeneralManualCAE(CAE):
             residual: Optional[Dict[str, List[bool]]] = None,
             dropout: Optional[Dict[str, List[float]]] = None,
             order: str = "lbad",
-            activation: Union[torch.nn.Module, Literal["relu", "swish", "lrelu"]] = "relu",
+            activation: Union[torch.nn.Module, Literal["relu", "swish", "lrelu", "gelu"]] = "relu",
             **kwargs
         ) -> None:
         if downsample_factor is None:
