@@ -1,0 +1,7 @@
+{
+    "project": "smoe",
+    "notes": "",
+    "tags": ["simple", "project"],
+    "learning_rate": 5e-5,
+    "epochs": 1e5   
+}
