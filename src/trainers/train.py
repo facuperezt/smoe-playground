@@ -21,7 +21,7 @@ class Trainer:
             project=cfg.pop("project"),
             notes=cfg.pop("notes", ""),
             tags=cfg.pop("tags", ""),
-            mode="online",
+            mode="disabled",
         )
         wandb.config = {"train_configs": cfg, "model_configs": self.model.cfg}
         optim = torch.optim.AdamW(self.model.parameters(), lr=cfg["learning_rate"])

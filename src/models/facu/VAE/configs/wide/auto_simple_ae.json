@@ -1,0 +1,50 @@
+{
+    "model_type": "Auto",
+    
+    "smoe_configs": {
+        "n_kernels": 4,
+        "block_size": 16,
+        "kernels_outside": false,
+        "negative_experts": false
+    },
+
+    "encoder_configs": {
+        "hidden_dims": {
+            "conv": [16, 16, 32, 32, 64],
+            "lin": [64, 32, 32, 32, 16]
+        },
+        "downsample": {
+            "conv": true,
+            "min_block_size": 2,
+            "block_size_reduction": 2
+        },
+        "batch_norm": {
+            "conv": true,
+            "lin": false
+        },
+        "bias": {
+            "conv": false,
+            "lin": true
+        },
+        "residual": {
+            "conv": false,
+            "lin": false
+        },
+        "activation": {
+            "conv": "swish",
+            "lin": "swish"
+        },
+        "order": {
+            "conv": "lbad",
+            "lin": "lbad"
+        },
+        "dropout": {
+            "conv": 0.1,
+            "lin": 0.2
+        }
+    },
+
+    "loss_configs": {
+        "beta": 0.1
+    }
+}

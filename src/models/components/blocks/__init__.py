@@ -2,7 +2,7 @@
 it's also responsible of importing them all and managing the name that's exposed to the outside world
 """
 from .activation_functions import Swish, CustomizableSmoeLastLayerActivations as SmoeActivations, ShiftedSigmoid
-from .vqgan_blocks import NonLocalBlock as NonLocalAttention, ResidualBlock as VqGanResidualBlock
+from .vqgan_blocks import NonLocalBlock as NonLocalAttentionBlock, ResidualBlock as VqGanResidualBlock, DownSampleBlock as VqGanDownsampleBlock
 from .conv_blocks import GeneralConvBlock
 from .gan_blocks import PatchGanDiscriminator
 from .linear_blocks import GeneralLinearBlock

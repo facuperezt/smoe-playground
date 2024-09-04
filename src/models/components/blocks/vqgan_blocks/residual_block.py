@@ -1,6 +1,6 @@
 import torch
-from models.components.blocks import GroupNorm
-from models.components.blocks import Swish
+from src.models.components.blocks import GroupNorm
+from src.models.components.blocks import Swish
 
 __all__ = [
     "ResidualBlock"

@@ -1,7 +1,7 @@
 import json
 from typing import Any, Dict
 import torch
-from src.models.elvira import Elvira2023Small, Elvira2023Full
+# from src.models.elvira import Elvira2023Small, Elvira2023Full
 from src.models.facu import VariationalAutoencoder, ConvolutionalAutoencoder, ResNetWeirdness
 from src.trainers import TrainWithSyntheticData, TrainWithRealData
 
