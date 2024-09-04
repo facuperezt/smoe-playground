@@ -1,18 +1,17 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from src.models.components.blocks.normalization_blocks.group_norm import GroupNorm
 
 __all__ = [
     "NonLocalBlock",
 ]
 
 class NonLocalBlock(nn.Module):
-    def __init__(self, channels):
+    def __init__(self, channels, n_groups: int = 32):
         super(NonLocalBlock, self).__init__()
         self.in_channels = channels
 
-        self.gn = GroupNorm(channels)
+        self.gn = torch.nn.GroupNorm(num_channels=channels, num_groups=n_groups, eps=1e-6, affine=True)
         self.q = nn.Conv2d(channels, channels, 1, 1, 0)
         self.k = nn.Conv2d(channels, channels, 1, 1, 0)
         self.v = nn.Conv2d(channels, channels, 1, 1, 0)
