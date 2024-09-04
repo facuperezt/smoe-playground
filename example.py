@@ -1,6 +1,8 @@
+import json
+from typing import Any, Dict
 import torch
 from src.models.elvira import Elvira2023Small, Elvira2023Full
-from src.models.facu import VariationalAutoencoder, ConvolutionalAutoencoder
+from src.models.facu import VariationalAutoencoder, ConvolutionalAutoencoder, ResNetWeirdness
 from src.trainers import TrainWithSyntheticData, TrainWithRealData
 
 def get_class_name(instance) -> str:
@@ -8,11 +10,13 @@ def get_class_name(instance) -> str:
 
 def train_with_synth_data():
     # model = VariationalAutoencoder("manual_simple_ae.json")
-    model = VariationalAutoencoder("wide/manual_simple_ae.json")
+    model = ResNetWeirdness(n_kernels=4, block_size=16)
     # model.load_state_dict(torch.load("vae_synth_data.pth"))
     trainer = TrainWithSyntheticData(model)
+    with open("src/trainers/configs/simple_training.json", "r") as f:
+        cfg: Dict[str, Any] = json.load(f)
     try:
-        trainer.train("src/trainers/configs/simple_training.json")
+        trainer.train(cfg)
     except Exception as e:
         print(e)
     finally:
@@ -20,7 +24,6 @@ def train_with_synth_data():
 
 
 def finetune_with_real_data():
-    # model = VariationalAutoencoder("manual_simple_ae.json")
     model = VariationalAutoencoder("wide/manual_simple_ae.json")
     model.load_state_dict(torch.load(f"{get_class_name(model)}_synth_data.pth"))
     trainer = TrainWithRealData(model)
@@ -33,5 +36,7 @@ def finetune_with_real_data():
 
 
 if __name__ == "__main__":
+    # with open(cfg_path, "r") as f:
+    #     cfg: Dict[str, Any] = json.load(f)
     train_with_synth_data()
-    finetune_with_real_data()
+    # finetune_with_real_data()

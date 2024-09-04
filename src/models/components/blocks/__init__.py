@@ -8,3 +8,4 @@ from .gan_blocks import PatchGanDiscriminator
 from .linear_blocks import GeneralLinearBlock
 from .normalization_blocks import GroupNorm
 from .vq_blocks import Codebook as VqCodebook
+from .residual_blocks import ResNetBlock

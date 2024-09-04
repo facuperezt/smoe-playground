@@ -11,7 +11,7 @@ __all__ = [
 
 
 class LogarithmicResetLRScheduler(_LRScheduler):
-    def __init__(self, optimizer, factor=4e-3, patience=50, min_lr=1e-8, reset_factor=0.75, verbose=False):
+    def __init__(self, optimizer, factor=3e-3, patience=15, min_lr=1e-8, reset_factor=0.75, warmup_length: int = 5000, verbose=False):
         self.factor = factor
         self.patience = patience
         self.min_lr = min_lr
@@ -23,6 +23,9 @@ class LogarithmicResetLRScheduler(_LRScheduler):
         self.initial_lrs = [group['lr'] for group in optimizer.param_groups]
         self.start_lrs = copy.deepcopy(self.initial_lrs)
         self.decay_steps = 0
+        self.len_warmup = max(1, warmup_length)
+        self.orig_len_warmup = copy.deepcopy(self.len_warmup)
+        self.warmup_steps = 1
         super().__init__(optimizer)
 
     def step(self, metrics: Optional[Union[float, int]] = None, epoch: Optional[int] = None):
@@ -38,7 +41,13 @@ class LogarithmicResetLRScheduler(_LRScheduler):
         else:
             self.num_bad_epochs += 1
 
-        if self.num_bad_epochs > self.patience:
+        if self.warmup_steps < self.len_warmup:
+            factor = self.warmup_steps/self.len_warmup
+            for param_group, lr in zip(self.optimizer.param_groups, self.start_lrs):
+                rate = 200
+                param_group["lr"] = lr * (rate**factor - 1)/(rate - 1)
+            self.warmup_steps += 1
+        elif self.num_bad_epochs > self.patience:
             if current_lr > self.min_lr:
                 self.decay_steps += 1
                 new_lr = self.calculate_lr()
@@ -51,12 +60,18 @@ class LogarithmicResetLRScheduler(_LRScheduler):
                 for i, (param_group, initial_lr) in enumerate(zip(self.optimizer.param_groups, self.initial_lrs)):
                     new_lr = initial_lr * self.reset_factor
                     if new_lr > self.min_lr:
-                        param_group['lr'] = self.start_lrs[i] = new_lr
+                        param_group['lr'] = self.min_lr
+                        self.start_lrs[i] = new_lr
                         self.reset_factor *= self.reset_factor
+                        # Reset warmup procedure, but make it shorter
+                        self.warmup_steps = 0
+                        self.len_warmup //= 2
                     else:
                         param_group['lr'] = self.start_lrs[i] = self.min_lr
                         self.initial_reset_factor *= self.initial_reset_factor
                         self.reset_factor = self.initial_reset_factor
+                        # Reset warmup length
+                        self.len_warmup = self.orig_len_warmup // 2
                 if self.verbose:
                     print(f'Resetting learning rate to {initial_lr * self.reset_factor:.6f}')
             self.num_bad_epochs = 0
@@ -83,9 +98,9 @@ if __name__ == "__main__":
             return x * self.weights
 
     optim = torch.optim.SGD(DummyClass().parameters(), lr=1e-6)
-    scheduler = LogarithmicResetLRScheduler(optim)
+    scheduler = LogarithmicResetLRScheduler(optim, warmup_length=5000)
     vals = []
-    for i in range(100000):
+    for i in range(70000):
         scheduler.step(i)
         vals.append(optim.param_groups[0]["lr"])
     plt.plot(vals)

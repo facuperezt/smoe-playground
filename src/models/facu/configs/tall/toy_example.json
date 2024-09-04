@@ -1,0 +1,8 @@
+{
+    "model": {
+        "conv": {
+            "in_channels": 1, "out_channels": 32, "stride": 1, "batch_norm": true, "bias": false,
+            "residual": false, "activation": "gelu", "order": "blda", "dropout": 0.1
+        }
+    }
+}

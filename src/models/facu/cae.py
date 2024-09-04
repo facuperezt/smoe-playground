@@ -51,10 +51,10 @@ class ConvolutionalAutoencoder(torch.nn.Module):
         """
         return self.model.block_size
 
-    def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.model(x)
     
-    def loss(self, input: torch.Tensor, output: Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor], extra_information: torch.Tensor) -> Dict[str, Union[torch.Tensor, Any]]:
+    def loss(self, input: torch.Tensor, output: torch.Tensor, extra_information: torch.Tensor) -> Dict[str, Union[torch.Tensor, Any]]:
         return self.model.loss(input, output, extra_information)
 
 class AutoConvolutionalAutoencoder(torch.nn.Module):
@@ -99,7 +99,8 @@ class AutoConvolutionalAutoencoder(torch.nn.Module):
         Returns:
             torch.Tensor: the loss
         """
-        return {"loss": torch.nn.functional.mse_loss(output, input), "logging": None}
+        rec_loss = torch.nn.functional.mse_loss(output, input)
+        return {"loss": rec_loss, "logging": {"Reconstruction Loss": rec_loss}}
     
 class ManualConvolutionalAutoencoder(AutoConvolutionalAutoencoder):
     def __init__(self, encoder_configs: Dict[str, Any], smoe_configs: Dict[str, Any], loss_configs: Dict[str, Any]):

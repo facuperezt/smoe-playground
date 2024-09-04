@@ -3,3 +3,4 @@
 # They even use the same config files... 
 from .CAE import GeneralAutoCAE as AutoCaeEncoder, GeneralManualCAE as ManualCaeEncoder
 from .VAE import GeneralAutoVAE as AutoVaeEncoder, GeneralManualVAE as ManualVaeEncoder
+from .ResNet import ResNetEncoder
