@@ -10,7 +10,7 @@ def get_class_name(instance) -> str:
 
 def train_with_synth_data(run_cfg: Dict[str, Any]):
     # model = VariationalAutoencoder("manual_simple_ae.json")
-    model = ResNetWeirdness(n_kernels=4, block_size=16)
+    model = ResNetWeirdness(n_kernels=2, block_size=16)
     # model.load_state_dict(torch.load("vae_synth_data.pth"))
     trainer = TrainWithSyntheticData(model, num_blocks=1500)
     try:

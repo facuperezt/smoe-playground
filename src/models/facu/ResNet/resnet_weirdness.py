@@ -16,7 +16,7 @@ class ResNetWeirdness(torch.nn.Module):
         self.n_kernels = n_kernels
         self.block_size = block_size
         self.cfg = "default"
-        self.encoder = ResNetEncoder(in_channels=1, out_features=28)
+        self.encoder = ResNetEncoder(in_channels=1, out_features=7*n_kernels)
         self.decoder = SmoeDecoder(n_kernels, block_size)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
