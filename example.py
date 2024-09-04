@@ -8,27 +8,25 @@ from src.trainers import TrainWithSyntheticData, TrainWithRealData
 def get_class_name(instance) -> str:
     return repr(instance.__class__).strip("'>").split(".")[-1]
 
-def train_with_synth_data():
+def train_with_synth_data(run_cfg: Dict[str, Any]):
     # model = VariationalAutoencoder("manual_simple_ae.json")
     model = ResNetWeirdness(n_kernels=4, block_size=16)
     # model.load_state_dict(torch.load("vae_synth_data.pth"))
-    trainer = TrainWithSyntheticData(model)
-    with open("src/trainers/configs/simple_training.json", "r") as f:
-        cfg: Dict[str, Any] = json.load(f)
+    trainer = TrainWithSyntheticData(model, num_blocks=1500)
     try:
-        trainer.train(cfg)
+        trainer.train(run_cfg)
     except Exception as e:
         print(e)
     finally:
         torch.save(model.state_dict(), f"{get_class_name(model)}_synth_data.pth")
 
 
-def finetune_with_real_data():
+def finetune_with_real_data(run_cfg: Dict[str, Any]):
     model = VariationalAutoencoder("wide/manual_simple_ae.json")
     model.load_state_dict(torch.load(f"{get_class_name(model)}_synth_data.pth"))
     trainer = TrainWithRealData(model)
     try:
-        trainer.train("src/trainers/configs/simple_training.json")
+        trainer.train(run_cfg)
     except Exception as e:
         print(e)
     finally:
@@ -36,7 +34,7 @@ def finetune_with_real_data():
 
 
 if __name__ == "__main__":
-    # with open(cfg_path, "r") as f:
-    #     cfg: Dict[str, Any] = json.load(f)
-    train_with_synth_data()
+    with open("src/trainers/configs/simple_training.json", "r") as f:
+        cfg: Dict[str, Any] = json.load(f)
+    train_with_synth_data(run_cfg=cfg)
     # finetune_with_real_data()

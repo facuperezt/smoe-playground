@@ -55,14 +55,14 @@ class Trainer:
 
 
 class TrainWithSyntheticData(Trainer):
-    def __init__(self, model: torch.nn.Module):
+    def __init__(self, model: torch.nn.Module, num_blocks: int = 1500):
         super().__init__(model)
         self.dataloader = DataLoader("synthetic", self.model.n_kernels, self.model.block_size)  # generate synthetic data
-        self._get_data = lambda: self.dataloader.get(m=3000)
+        self._get_data = lambda: self.dataloader.get(m=num_blocks)
 
 
 class TrainWithRealData(Trainer):
-    def __init__(self, model: torch.nn.Module):
+    def __init__(self, model: torch.nn.Module, batch_size: int = 15, img_size: int = 384):
         super().__init__(model)
-        self.dataloader = DataLoader("dataset", self.model.n_kernels, self.model.block_size, "professional_photos", img_size=384, batch_size=5)  # get real data
+        self.dataloader = DataLoader("dataset", self.model.n_kernels, self.model.block_size, "professional_photos", img_size=img_size, batch_size=batch_size)  # get real data
         self._get_data = self.dataloader.get       

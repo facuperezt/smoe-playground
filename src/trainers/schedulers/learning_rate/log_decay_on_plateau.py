@@ -41,9 +41,11 @@ class LogarithmicResetLRScheduler(_LRScheduler):
         else:
             self.num_bad_epochs += 1
 
+        # Warmup has been shown to increase learning stability, not really necessary for shallow models
         if self.warmup_steps < self.len_warmup:
             factor = self.warmup_steps/self.len_warmup
             for param_group, lr in zip(self.optimizer.param_groups, self.start_lrs):
+                # A lower rate makes it more linear, a higher rate makes it more exponential
                 rate = 200
                 param_group["lr"] = lr * (rate**factor - 1)/(rate - 1)
             self.warmup_steps += 1
@@ -58,14 +60,18 @@ class LogarithmicResetLRScheduler(_LRScheduler):
             else:
                 self.decay_steps = 0
                 for i, (param_group, initial_lr) in enumerate(zip(self.optimizer.param_groups, self.initial_lrs)):
+                    # Once the learning rate has reached the minimum, reset it.
                     new_lr = initial_lr * self.reset_factor
                     if new_lr > self.min_lr:
+                        # The lr stays at minimum for one more epoch, since now we start the warmup process again.
                         param_group['lr'] = self.min_lr
-                        self.start_lrs[i] = new_lr
-                        self.reset_factor *= self.reset_factor
                         # Reset warmup procedure, but make it shorter
                         self.warmup_steps = 0
                         self.len_warmup //= 2
+                        # Set the goal for warmup
+                        self.start_lrs[i] = new_lr
+                        # Reduce the factor of the reset for the next iteration, lowers the peak.
+                        self.reset_factor *= self.reset_factor
                     else:
                         param_group['lr'] = self.start_lrs[i] = self.min_lr
                         self.initial_reset_factor *= self.initial_reset_factor

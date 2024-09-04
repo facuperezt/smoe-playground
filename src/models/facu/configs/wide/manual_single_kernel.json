@@ -3,7 +3,7 @@
     
     "smoe_configs": {
         "n_kernels": 1,
-        "block_size": 16,
+        "block_size": 8,
         "kernels_outside": false,
         "negative_experts": false
     },
