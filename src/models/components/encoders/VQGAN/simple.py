@@ -8,6 +8,9 @@ from src.models.components.blocks import (
     VqGanDownsampleBlock,
 )
 
+__all__ = [
+    "Encoder"
+]
 
 class Encoder(nn.Module):
     def __init__(
@@ -46,4 +49,7 @@ class Encoder(nn.Module):
         self.model = nn.Sequential(*layers)
 
     def forward(self, x):
+        # for layer in self.model:
+        #     x = layer(x)
+        # return x.squeeze()
         return self.model(x)

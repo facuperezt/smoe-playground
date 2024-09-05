@@ -1,3 +1,4 @@
-from .VAE import *
-from .CAE import *
-from .ResNet import *
+from .VAE import VariationalAutoencoder
+from .CAE import ConvolutionalAutoencoder
+from .ResNet import ResNetWeirdness as ResNet
+from .VQ_GAN import VQVAE as VqVae

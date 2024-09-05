@@ -1,0 +1,19 @@
+{
+    "smoe_args": {
+        "n_kernels": 5,
+        "block_size": 16
+    },
+    "encoder_args": {
+        "in_channels": 1,
+        "hidden_dims": [32, 32, 64, 256, 1024],
+        "latent_dim": 35,
+        "attn_resolutions": [32, 64],
+        "num_res_blocks": 2,
+        "img_size": 384
+    },
+    "codebook_args": {
+        "num_codebook_vectors": 1024,
+        "latent_dim": 28,
+        "beta": 1.0
+    }
+}

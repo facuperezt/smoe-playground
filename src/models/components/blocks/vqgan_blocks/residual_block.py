@@ -17,7 +17,7 @@ class ResidualBlock(torch.nn.Module):
             torch.nn.GroupNorm(num_channels=in_channels, num_groups=num_groups, eps=eps, affine=affine),
             Swish(),
             torch.nn.Conv2d(in_channels, out_channels, 3, 1, 1),
-            torch.nn.GroupNorm(num_channels=in_channels, num_groups=num_groups, eps=eps, affine=affine),
+            torch.nn.GroupNorm(num_channels=out_channels, num_groups=num_groups, eps=eps, affine=affine),
             Swish(),
             torch.nn.Conv2d(out_channels, out_channels, 3, 1, 1)
         )
