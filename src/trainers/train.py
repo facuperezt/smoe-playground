@@ -24,7 +24,7 @@ class Trainer:
         )
         wandb.config = {"train_configs": cfg, "model_configs": self.model.cfg}
         optim = torch.optim.AdamW(self.model.parameters(), lr=cfg["learning_rate"])
-        sched_lr = LogarithmicResetLRScheduler(optim)
+        sched_lr = LogarithmicResetLRScheduler(optim, warmup_length=cfg["warmup_length"])
         self.model.to("cuda")
         self.model.train()
         pbar = tqdm.tqdm(total=cfg["epochs"], desc=f"loss: {0.00:.5f}")
