@@ -8,6 +8,10 @@ gifs/
 **.png
 **.pkl
 
+
+# Model saves
+**/models/**/saves/
+
 # Un-ignore sample photos
 !src/data/professional_photos/sample_comparisson_photo.png
 

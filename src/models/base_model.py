@@ -12,7 +12,6 @@ __all__ = [
 
 class SmoeModel(torch.nn.Module):
     @property
-    @abstractmethod
     def cfg(self: T) -> Dict[str, Any]:
         """Dictionary containing all of the models used configs.
         Normally this is a nested dict with a dict for the parameters
@@ -21,6 +20,11 @@ class SmoeModel(torch.nn.Module):
         Returns:
             Dict[str, Any]: Model's parameters
         """
+        return self._cfg
+    
+    @property
+    def saves_path(self: T) -> str:
+        return self._saves_path
 
     @abstractmethod
     def loss(self: T, input: torch.Tensor, output: Any, extra_information: Any) -> Tuple[torch.Tensor, Dict[str, Any]]:
@@ -48,10 +52,9 @@ class SmoeModel(torch.nn.Module):
         if os.path.isdir(os.path.dirname(path)):
             torch.save(self.state_dict(), path)
             return
-        saves_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "saves")
-        current_path = os.path.join(saves_path, path)
+        current_path = os.path.join(self.saves_path, path)
         os.makedirs(current_path, exist_ok=True)
-        with open("model_configs.json", "w") as f:
+        with open(os.path.join(current_path, "model_configs.json"), "w") as f:
             json.dump(self.cfg, f)
         torch.save(self.state_dict(), os.path.join(current_path, "state_dict.pth"))
 
@@ -64,9 +67,8 @@ class SmoeModel(torch.nn.Module):
         if os.path.isdir(os.path.dirname(path)):
             self.load_state_dict(torch.load(path))
             return
-        saves_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "saves")
-        current_path = os.path.join(saves_path, path)
-        with open("model_configs.json", "r") as f:
+        current_path = os.path.join(self.saves_path, path)
+        with open(os.path.join(current_path, "model_configs.json"), "r") as f:
             cfg = json.load(f)
         diff = DeepDiff(self.cfg, cfg)
         if len(diff) > 0:

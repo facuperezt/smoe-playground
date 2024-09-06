@@ -7,12 +7,13 @@ import torch.nn as nn
 from src.models.components.encoders import VqGanEncoder
 from src.models.components.blocks import SmoeActivations, VqCodebook
 from src.models.components.decoders import SmoeDecoder
+from src.models.base_model import SmoeModel
 
 __all__ = [
     "VQVAE"
 ]
 
-class VQVAE_Simple(nn.Module):
+class VQVAE_Simple(SmoeModel):
     def __init__(self, smoe_args: Dict[str, Any], encoder_args: Dict[str, Any], codebook_args: Optional[Dict[str, Any]] = None, device: Union[str, torch.device] = "cpu"):
         super().__init__()
         self.n_kernels = smoe_args["n_kernels"]
@@ -66,24 +67,25 @@ class VQVAE(VQVAE_Simple):
             # Then try to find it in the folder where the model is saved
             file = open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "configs", config_path), "r")
         model_configs: Dict[str] = json.load(file)
-        self.cfg = copy.deepcopy(model_configs)
+        self._cfg = copy.deepcopy(model_configs)
+        self._saves_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "saves")
         file.close()
         super().__init__(**model_configs)
 
-    def save_state_dict(self, path: str) -> None:
-        if os.path.isdir(os.path.dirname(path)):
-            torch.save(self.state_dict(), path)
-            return
-        saves_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "saves")
-        os.makedirs(os.path.join(saves_path, path), exist_ok=True)
-        torch.save(self.state_dict(), os.path.join(saves_path, "state_dict.pth"))
+    # def save_state_dict(self, path: str) -> None:
+    #     if os.path.isdir(os.path.dirname(path)):
+    #         torch.save(self.state_dict(), path)
+    #         return
+    #     saves_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "saves")
+    #     os.makedirs(os.path.join(saves_path, path), exist_ok=True)
+    #     torch.save(self.state_dict(), os.path.join(saves_path, "state_dict.pth"))
 
-    def load_state_dict(self, path: str) -> None:
-        if os.path.isdir(os.path.dirname(path)):
-            self.load_state_dict(torch.load(path))
-            return
-        saves_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "saves")
-        self.load_state_dict(torch.load(os.path.join(saves_path, path)))
+    # def load_state_dict(self, path: str) -> None:
+    #     if os.path.isdir(os.path.dirname(path)):
+    #         self.load_state_dict(torch.load(path))
+    #         return
+    #     saves_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "saves")
+    #     self.load_state_dict(torch.load(os.path.join(saves_path, path)))
     
 class VQGAN(VQVAE):
     def calculate_lambda(self, perceptual_loss, gan_loss):

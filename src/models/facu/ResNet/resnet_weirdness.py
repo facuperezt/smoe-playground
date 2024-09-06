@@ -1,3 +1,6 @@
+import copy
+import json
+import os
 from typing import Any, Dict, Union
 import torch
 
@@ -11,11 +14,21 @@ __all__ = [
 
 
 class ResNetWeirdness(torch.nn.Module):
-    def __init__(self, n_kernels: int = 4, block_size: int = 16,):
+    def __init__(self, config_path: str):
+        try:
+            # First assume that the config_path is a relative or absolute path that's findable
+            file = open(config_path, "r")
+        except FileNotFoundError:
+            # Then try to find it in the folder where the model is saved
+            file = open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "configs", config_path), "r")
         super().__init__()
+        model_configs: Dict[str] = json.load(file)
+        n_kernels = model_configs["n_kernels"]
+        block_size = model_configs["block_size"]
         self.n_kernels = n_kernels
         self.block_size = block_size
-        self.cfg = "default"
+        self._cfg = copy.deepcopy(model_configs)
+        self._saves_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "saves")
         self.encoder = ResNetEncoder(in_channels=1, out_features=7*n_kernels)
         self.decoder = SmoeDecoder(n_kernels, block_size)
 
