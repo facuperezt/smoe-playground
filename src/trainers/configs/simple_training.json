@@ -3,6 +3,6 @@
     "notes": "",
     "tags": ["simple", "project"],
     "learning_rate": 5e-6,
-    "epochs": 3e3,
+    "epochs": 3e4,
     "warmup_length": 500 
 }

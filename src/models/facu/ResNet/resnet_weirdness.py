@@ -30,4 +30,4 @@ class ResNetWeirdness(torch.nn.Module):
         max_loss = 0.25*torch.nn.functional.mse_loss(batch_reshape(input).max(dim=-1).values, batch_reshape(output).max(dim=-1).values)
         rec_loss = torch.nn.functional.mse_loss(output, input)
         loss = rec_loss + min_loss + max_loss
-        return {"loss": loss, "logging": {"Reconstruction Loss": rec_loss, "Min/Max Value Loss": {"min": min_loss, "max": max_loss}}}
+        return loss, {"Reconstruction Loss": rec_loss, "Min/Max Value Loss": {"min": min_loss, "max": max_loss}}

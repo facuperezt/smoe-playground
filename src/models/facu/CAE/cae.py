@@ -100,7 +100,7 @@ class AutoConvolutionalAutoencoder(torch.nn.Module):
             torch.Tensor: the loss
         """
         rec_loss = torch.nn.functional.mse_loss(output, input)
-        return {"loss": rec_loss, "logging": {"Reconstruction Loss": rec_loss}}
+        return rec_loss, {"Reconstruction Loss": rec_loss}
     
 class ManualConvolutionalAutoencoder(AutoConvolutionalAutoencoder):
     def __init__(self, encoder_configs: Dict[str, Any], smoe_configs: Dict[str, Any], loss_configs: Dict[str, Any]):

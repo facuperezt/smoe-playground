@@ -55,7 +55,7 @@ class VQVAE_Simple(nn.Module):
         decoded_input, _, q_loss = output
         rec_loss = torch.nn.functional.mse_loss(decoded_input, input)
         loss = rec_loss + q_loss
-        return {"loss": loss, "logging": {"Reconstruction Loss": rec_loss, "Quantization Loss": q_loss}}
+        return loss, {"Reconstruction Loss": rec_loss, "Quantization Loss": q_loss}
 
 class VQVAE(VQVAE_Simple):
     def __init__(self, config_path: str):
@@ -70,6 +70,21 @@ class VQVAE(VQVAE_Simple):
         file.close()
         super().__init__(**model_configs)
 
+    def save_state_dict(self, path: str) -> None:
+        if os.path.isdir(os.path.dirname(path)):
+            torch.save(self.state_dict(), path)
+            return
+        saves_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "saves")
+        os.makedirs(os.path.join(saves_path, path), exist_ok=True)
+        torch.save(self.state_dict(), os.path.join(saves_path, "state_dict.pth"))
+
+    def load_state_dict(self, path: str) -> None:
+        if os.path.isdir(os.path.dirname(path)):
+            self.load_state_dict(torch.load(path))
+            return
+        saves_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "saves")
+        self.load_state_dict(torch.load(os.path.join(saves_path, path)))
+    
 class VQGAN(VQVAE):
     def calculate_lambda(self, perceptual_loss, gan_loss):
         last_layer = self.decoder.model[-1]

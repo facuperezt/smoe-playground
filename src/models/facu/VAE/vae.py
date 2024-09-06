@@ -105,7 +105,7 @@ class AutoVariationalAutoencoder(torch.nn.Module):
         recons_loss = torch.nn.functional.mse_loss(y, inputs)
         kld_loss = torch.mean(-0.5 * torch.sum(1 + log_var - mu ** 2 - log_var.exp(), dim = 1), dim = 0)
         total_loss = recons_loss + self.beta*kld_loss
-        return {"loss": total_loss, "logging": {"KLDiv Loss": kld_loss.item(), "Reconstruction Loss": recons_loss.item()}}
+        return total_loss, {"KLDiv Loss": kld_loss.item(), "Reconstruction Loss": recons_loss.item()}
     
 class ManualVariationalAutoencoder(AutoVariationalAutoencoder):
     def __init__(self, encoder_configs: Dict[str, Any], smoe_configs: Dict[str, Any], loss_configs: Dict[str, Any]):

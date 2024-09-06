@@ -2,6 +2,7 @@ from typing import Any, Dict
 import torch
 import tqdm
 from src.data import DataLoader
+from src.models.base_model import SmoeModel
 from src.trainers.schedulers import LogarithmicResetLRScheduler
 import wandb
 
@@ -11,16 +12,16 @@ __all__ = [
 ]
 
 class Trainer:
-    def __init__(self, model: torch.nn.Module):
+    def __init__(self, model: SmoeModel):
         self._model = model
         self._get_data = None
 
-    def train(self, cfg: Dict[str, Any]):
+    def train(self, cfg: Dict[str, Any], wandb_mode: str = "disabled"):
         run = wandb.init(
             project=cfg.pop("project"),
             notes=cfg.pop("notes", ""),
             tags=cfg.pop("tags", ""),
-            mode="online",
+            mode=wandb_mode,
         )
         wandb.config = {"train_configs": cfg, "model_configs": self.model.cfg}
         optim = torch.optim.AdamW(self.model.parameters(), lr=cfg["learning_rate"])
@@ -32,19 +33,19 @@ class Trainer:
             optim.zero_grad()
             data = self.get_data()
             out = self.model(data["input"])
-            loss = self.model.loss(data["input"], out, data["loss"])
-            loss["loss"].backward()
-            wandb.log({"loss": loss, "learning_rate": sched_lr.get_lr()[0]})
+            loss, logging = self.model.loss(data["input"], out, data["loss"])
+            loss.backward()
+            wandb.log({"loss": logging, "learning_rate": sched_lr.get_lr()[0]})
             optim.step()
-            sched_lr.step(loss["loss"].item())
+            sched_lr.step(loss.item())
             pbar.update(epoch - pbar.n)
-            pbar.desc = f"loss: {loss['loss'].item():.5f}"
+            pbar.desc = f"loss: {loss.item():.5f}"
 
         wandb.log_artifact(self.model)
         return self.model
 
     @property
-    def model(self) -> torch.nn.Module:
+    def model(self) -> SmoeModel:
         return self._model
     
     def get_data(self) -> Any:
