@@ -16,7 +16,7 @@ def train_with_synth_data(model_config: Any, run_cfg: Dict[str, Any]):
     # model.load_state_dict(torch.load(f"{get_class_name(model)}_synth_data"))
     trainer = TrainWithSyntheticData(model, num_blocks=1500)
     try:
-        trainer.train({**run_cfg}, "disabled")
+        trainer.train({**run_cfg}, "online")
     except Exception as e:
         print(e)
     finally:

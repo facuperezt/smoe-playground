@@ -1,8 +1,8 @@
 {
     "project": "smoe",
     "notes": "",
-    "tags": ["simple", "project"],
+    "tags": ["VqVae", "Short"],
     "learning_rate": 5e-6,
-    "epochs": 3e0,
+    "epochs": 3e4,
     "warmup_length": 500 
 }
