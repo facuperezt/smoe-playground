@@ -1,6 +1,6 @@
 {
     "project": "smoe",
-    "notes": "",
+    "notes": "block_size 16",
     "tags": ["VqVae", "Short"],
     "learning_rate": 5e-6,
     "epochs": 3e3,

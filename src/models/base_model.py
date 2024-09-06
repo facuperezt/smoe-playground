@@ -42,7 +42,7 @@ class SmoeModel(torch.nn.Module):
 
         """ 
 
-    def save_state_dict(self: T, path: str) -> None:
+    def save_model(self: T, path: str) -> None:
         """Saves the model's state dict in path. If the path is not findable, store it in the same folder
         where the model's source code and configs are
 
@@ -55,10 +55,10 @@ class SmoeModel(torch.nn.Module):
         current_path = os.path.join(self.saves_path, path)
         os.makedirs(current_path, exist_ok=True)
         with open(os.path.join(current_path, "model_configs.json"), "w") as f:
-            json.dump(self.cfg, f)
+            json.dump(self.cfg, f, indent=2)
         torch.save(self.state_dict(), os.path.join(current_path, "state_dict.pth"))
 
-    def load_state_dict(self: T, path: str) -> None:
+    def load_model(self: T, path: str) -> None:
         """Loads the model from path. Path can be just a file name if it's stored in the saves folder
 
         Args:

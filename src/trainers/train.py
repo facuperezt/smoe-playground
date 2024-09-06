@@ -21,6 +21,7 @@ class Trainer:
             project=cfg.pop("project"),
             notes=cfg.pop("notes", ""),
             tags=cfg.pop("tags", ""),
+            name=cfg.pop("name", None),
             mode=wandb_mode,
         )
         wandb.config = {"train_configs": cfg, "model_configs": self.model.cfg}
@@ -35,13 +36,13 @@ class Trainer:
             out = self.model(data["input"])
             loss, logging = self.model.loss(data["input"], out, data["loss"])
             loss.backward()
-            wandb.log({"loss": logging, "learning_rate": sched_lr.get_lr()[0]})
+            wandb.log({"loss": loss.item(), **logging, "learning_rate": sched_lr.get_lr()[0]})
             optim.step()
             sched_lr.step(loss.item())
-            pbar.update(epoch - pbar.n)
+            pbar.update(epoch - pbar.n + 1)
             pbar.desc = f"loss: {loss.item():.5f}"
 
-        wandb.log_artifact(self.model)
+        # wandb.log_artifact(self.model)  # I really don't understand how these work
         return self.model
 
     @property

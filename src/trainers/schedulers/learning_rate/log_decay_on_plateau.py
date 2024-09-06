@@ -104,9 +104,9 @@ if __name__ == "__main__":
             return x * self.weights
 
     optim = torch.optim.SGD(DummyClass().parameters(), lr=1e-6)
-    scheduler = LogarithmicResetLRScheduler(optim, warmup_length=5000)
+    scheduler = LogarithmicResetLRScheduler(optim, warmup_length=500)
     vals = []
-    for i in range(70000):
+    for i in range(15000):
         scheduler.step(i)
         vals.append(optim.param_groups[0]["lr"])
     plt.plot(vals)

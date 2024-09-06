@@ -14,35 +14,35 @@ def train_with_synth_data(model_config: Any, run_cfg: Dict[str, Any]):
     # model = ResNet(n_kernels=n_kernels, block_size=32)
     model: SmoeModel = VqVae(model_config)
     # model.load_state_dict(torch.load(f"{get_class_name(model)}_synth_data"))
-    trainer = TrainWithSyntheticData(model, num_blocks=1500)
+    trainer = TrainWithSyntheticData(model, num_blocks=1000)
     try:
         trainer.train({**run_cfg}, "online")
-    except Exception as e:
-        print(e)
+    except KeyboardInterrupt as e:
+        print("Interrupted training manually, going to next model :)")
     finally:
         name = str(datetime.datetime.now()).replace(" ", "__").replace(":", "_")
         path = f'{get_class_name(model)}_{name}_synth_data'
-        model.save_state_dict(path)
+        model.save_model(path)
 
 def finetune_with_real_data(model_config: Any, run_cfg: Dict[str, Any]):
     # model: SmoeModel = VariationalAutoencoder("wide/manual_simple_ae.json")
     # model = ResNet(n_kernels=n_kernels, block_size=32)
     model: SmoeModel = VqVae(model_config)
-    model.load_state_dict(torch.load(f"{get_class_name(model)}_synth_data"))
+    model.load_model(torch.load(f"{get_class_name(model)}_synth_data"))
     trainer = TrainWithRealData(model, batch_size=15)
     try:
         trainer.train(run_cfg)
-    except Exception as e:
-        print(e)
+    except KeyboardInterrupt as e:
+        print("Interrupted training manually, going to next model :)")
     finally:
         name = str(datetime.datetime.now()).replace(" ", "__").replace(":", "_")
         path = f'{get_class_name(model)}_{name}_finetune_real_data'
-        model.save_state_dict(path)
+        model.save_model(path)
 
 
 if __name__ == "__main__":
     with open("src/trainers/configs/simple_training.json", "r") as f:
         cfg: Dict[str, Any] = json.load(f)
-    for i in range(1, 6):
+    for i in range(3, 6):
         train_with_synth_data(model_config=f"base_vqgan_{i}.json", run_cfg={**cfg, "name": f"{i}_kernels_synth"})
         # finetune_with_real_data(model_config=f"base_vqgan_{i}.json", run_cfg={**cfg, "name": f"{i}_kernels_real"})

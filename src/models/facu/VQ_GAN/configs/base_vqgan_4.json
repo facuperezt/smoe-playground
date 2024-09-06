@@ -1,7 +1,7 @@
 {
     "smoe_args": {
         "n_kernels": 4,
-        "block_size": 8
+        "block_size": 16
     },
     "encoder_args": {
         "in_channels": 1,
