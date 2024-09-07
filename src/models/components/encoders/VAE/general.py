@@ -40,6 +40,7 @@ class VAE(torch.nn.Module):
         else:
             self.conv, in_channels, block_size = ret
             self._block_size = block_size
+            block_size = max(block_size, 1)
         self.lin, in_channels = self._build_lin_layers(in_channels*block_size**2, hidden_dims_lin, lin_block)
 
         self.encoder = torch.nn.Sequential(

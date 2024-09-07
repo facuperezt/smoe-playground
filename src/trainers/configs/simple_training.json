@@ -1,7 +1,7 @@
 {
     "project": "smoe",
-    "notes": "block_size 16",
-    "tags": ["VqVae", "Short"],
+    "notes": "",
+    "tags": ["BoatTime", "Short"],
     "learning_rate": 5e-6,
     "epochs": 3e3,
     "warmup_length": 500 

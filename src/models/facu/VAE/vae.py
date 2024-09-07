@@ -6,12 +6,14 @@ import torch
 
 from src.models.components.encoders import AutoVaeEncoder, ManualVaeEncoder
 from src.models.components.decoders import SmoeDecoder
+from src.models.base_model import SmoeModel
 
 __all__ = [
     "VariationalAutoencoder",
 ]
 
-class VariationalAutoencoder(torch.nn.Module):
+class VariationalAutoencoder(SmoeModel):
+    _saves_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "saves")
     def __init__(self, config_path: str):
         try:
             # First assume that the config_path is a relative or absolute path that's findable
@@ -21,7 +23,6 @@ class VariationalAutoencoder(torch.nn.Module):
             file = open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "configs", config_path), "r")
         model_configs: Dict[str] = json.load(file)
         self._cfg = copy.deepcopy(model_configs)
-        self._saves_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "saves")
         file.close()
         model_type = model_configs.pop("model_type", "").lower() 
         super().__init__()

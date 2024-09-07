@@ -20,7 +20,17 @@ class ResNetEncoder(torch.nn.Module):
             ResNetResidualBlock(in_channels=256, filter_sizes=[1, 3, 1], hidden_dims=[64, 64], out_channels=256),
             torch.nn.Conv2d(256, 256, kernel_size=3, stride=2, padding=1),
             ResNetResidualBlock(in_channels=256, filter_sizes=[1, 3, 1], hidden_dims=[64, 64], out_channels=256),
-            torch.nn.Conv2d(256, 256, kernel_size=1)
+            torch.nn.Conv2d(256, 256, kernel_size=1),
+            ResNetResidualBlock(in_channels=256, filter_sizes=[1, 3, 1], hidden_dims=[64, 64], out_channels=256),
+            torch.nn.Conv2d(256, 256, kernel_size=1),
+            ResNetResidualBlock(in_channels=256, filter_sizes=[1, 3, 1], hidden_dims=[64, 64], out_channels=256),
+            torch.nn.Conv2d(256, 256, kernel_size=1),
+            ResNetResidualBlock(in_channels=256, filter_sizes=[1, 3, 1], hidden_dims=[64, 64], out_channels=256),
+            torch.nn.Conv2d(256, 256, kernel_size=1),
+            ResNetResidualBlock(in_channels=256, filter_sizes=[1, 3, 1], hidden_dims=[64, 64], out_channels=256),
+            torch.nn.Conv2d(256, 256, kernel_size=1),
+            ResNetResidualBlock(in_channels=256, filter_sizes=[1, 3, 1], hidden_dims=[64, 64], out_channels=256),
+            torch.nn.Conv2d(256, 256, kernel_size=1),
         ]
         self.convs = torch.nn.Sequential(*blocks)
         blocks = [

@@ -6,29 +6,29 @@ import torch
 
 from src.models.components.decoders import SmoeDecoder
 from src.models.components.encoders import ResNetEncoder
-
+from src.models.base_model import SmoeModel
 
 __all__ = [
     "ResNetWeirdness"
 ]
 
 
-class ResNetWeirdness(torch.nn.Module):
+class ResNetWeirdness(SmoeModel):
+    _saves_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "saves")
     def __init__(self, config_path: str):
         try:
             # First assume that the config_path is a relative or absolute path that's findable
             file = open(config_path, "r")
         except FileNotFoundError:
             # Then try to find it in the folder where the model is saved
-            file = open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "configs", config_path), "r")
+            file = open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "configs", "wide", config_path), "r")
         super().__init__()
         model_configs: Dict[str] = json.load(file)
-        n_kernels = model_configs["n_kernels"]
-        block_size = model_configs["block_size"]
+        n_kernels = model_configs["smoe_configs"]["n_kernels"]
+        block_size = model_configs["smoe_configs"]["block_size"]
         self.n_kernels = n_kernels
         self.block_size = block_size
         self._cfg = copy.deepcopy(model_configs)
-        self._saves_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "saves")
         self.encoder = ResNetEncoder(in_channels=1, out_features=7*n_kernels)
         self.decoder = SmoeDecoder(n_kernels, block_size)
 

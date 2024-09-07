@@ -14,22 +14,26 @@ __all__ = [
 ]
 
 class VQVAE_Simple(SmoeModel):
-    def __init__(self, smoe_args: Dict[str, Any], encoder_args: Dict[str, Any], codebook_args: Optional[Dict[str, Any]] = None, device: Union[str, torch.device] = "cpu"):
+    _saves_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "saves")
+    def __init__(self, smoe_configs: Dict[str, Any], encoder_configs: Dict[str, Any], codebook_configs: Optional[Dict[str, Any]] = None, device: Union[str, torch.device] = "cpu"):
         super().__init__()
-        self.n_kernels = smoe_args["n_kernels"]
-        self.block_size = smoe_args["block_size"]
-        self.encoder = VqGanEncoder(**encoder_args).to(device=device)
-        self.decoder = SmoeDecoder(**smoe_args, device=device)
+        self.n_kernels = smoe_configs["n_kernels"]
+        self.block_size = smoe_configs["block_size"]
+        if encoder_configs["latent_dim"] != 7*self.n_kernels:
+            print(f"Correcting latent_dim from {encoder_configs['latent_dim']} to {7*self.n_kernels}")
+            encoder_configs["latent_dim"] = 7*self.n_kernels
+        self.encoder = VqGanEncoder(**encoder_configs).to(device=device)
+        self.decoder = SmoeDecoder(**smoe_configs, device=device)
         self.smoe_activations = SmoeActivations(
-            (2*smoe_args["n_kernels"], 1*smoe_args["n_kernels"], 4*smoe_args["n_kernels"]),
+            (2*smoe_configs["n_kernels"], 1*smoe_configs["n_kernels"], 4*smoe_configs["n_kernels"]),
             (torch.nn.Sigmoid(), torch.nn.Sigmoid(), torch.nn.Identity())
         )
-        latent_dim = encoder_args["latent_dim"]
-        if codebook_args is None:
-            codebook_args = {}
-        self.codebook = VqCodebook(**codebook_args).to(device=device)
-        self.quant_conv = nn.Conv2d(encoder_args["latent_dim"], codebook_args["latent_dim"], 1).to(device=device)
-        self.post_quant_conv = nn.Conv2d(codebook_args["latent_dim"], encoder_args["latent_dim"], 1).to(device=device)
+        latent_dim = encoder_configs["latent_dim"]
+        if codebook_configs is None:
+            codebook_configs = {}
+        self.codebook = VqCodebook(**codebook_configs).to(device=device)
+        self.quant_conv = nn.Conv2d(encoder_configs["latent_dim"], codebook_configs["latent_dim"], 1).to(device=device)
+        self.post_quant_conv = nn.Conv2d(codebook_configs["latent_dim"], encoder_configs["latent_dim"], 1).to(device=device)
 
     def forward(self, imgs):
         encoded_images = self.encoder(imgs)
@@ -68,7 +72,6 @@ class VQVAE(VQVAE_Simple):
             file = open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "configs", config_path), "r")
         model_configs: Dict[str] = json.load(file)
         self._cfg = copy.deepcopy(model_configs)
-        self._saves_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "saves")
         file.close()
         super().__init__(**model_configs)
 

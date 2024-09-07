@@ -6,22 +6,23 @@ import torch
 
 from src.models.components.encoders import AutoCaeEncoder, ManualCaeEncoder
 from src.models.components.decoders import SmoeDecoder
+from src.models.base_model import SmoeModel
 
 __all__ = [
     "ConvolutionalAutoencoder",
 ]
 
-class ConvolutionalAutoencoder(torch.nn.Module):
+class ConvolutionalAutoencoder(SmoeModel):
+    _saves_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "saves")
     def __init__(self, config_path: str):
         try:
             # First assume that the config_path is a relative or absolute path that's findable
             file = open(config_path, "r")
         except FileNotFoundError:
             # Then try to find it in the folder where the model is saved
-            file = open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "configs", config_path), "r")
+            file = open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "configs", "wide", config_path), "r")
         model_configs: Dict[str] = json.load(file)
         self._cfg = copy.deepcopy(model_configs)
-        self._saves_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "saves")
         file.close()
         model_type = model_configs.pop("model_type", "").lower() 
         super().__init__()
