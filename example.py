@@ -60,7 +60,7 @@ if __name__ == "__main__":
         for block_size in [8, 16]:
             for n_kernels in range(1, 6):
                 tmp_file_path = os.path.join(tempfile.gettempdir(), "temp_config_training_smoe_playground.json")
-                with open(os.path.join(model_class._saves_path.replace(r"\saves", "\configs"), "base.json"), "r") as base_cfg:
+                with open(os.path.join(model_class._saves_path.replace(r"saves", "configs"), "base.json"), "r") as base_cfg:
                     adapted_cfg = json.load(base_cfg)
                 adapted_cfg["smoe_configs"]["n_kernels"] = n_kernels
                 adapted_cfg["smoe_configs"]["block_size"] = block_size

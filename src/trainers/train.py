@@ -43,6 +43,7 @@ class Trainer:
             pbar.desc = f"loss: {loss.item():.5f}"
 
         # wandb.log_artifact(self.model)  # I really don't understand how these work
+        run.finish()
         return self.model
 
     @property
