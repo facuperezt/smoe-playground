@@ -21,7 +21,7 @@ def train_with_synth_data(model: SmoeModel, run_cfg: Dict[str, Any], num_blocks:
     trainer = TrainWithSyntheticData(model, num_blocks=num_blocks)
     run_name = run_cfg.get("name", "")
     try:
-        trainer.train({**run_cfg}, "disabled")
+        trainer.train({**run_cfg}, "online")
     except KeyboardInterrupt as e:
         print("Interrupted training manually, going to next model :)")
     finally:
