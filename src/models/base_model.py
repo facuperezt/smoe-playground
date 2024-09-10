@@ -41,6 +41,20 @@ class SmoeModel(torch.nn.Module):
             Tuple[torch.Tensor, Dict[str, Any]]: A tuple containing the loss tensor as the first element and any information that needs to be logged as the second
 
         """ 
+        pass
+
+    @abstractmethod
+    def reconstruct_input(self: T, input: torch.Tensor) -> torch.Tensor:
+        """Implements a forward call that only returns the reconstructed input. Used to validate models and check reconstruction quality in
+        a general way.
+
+        Args:
+            input (torch.Tensor): Input to the model
+
+        Returns:
+            torch.Tensor: The encoded and decoded (reconstructed) input.
+        """
+        pass
 
     def save_model(self: T, path: str) -> None:
         """Saves the model's state dict in path. If the path is not findable, store it in the same folder

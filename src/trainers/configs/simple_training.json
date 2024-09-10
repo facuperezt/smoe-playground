@@ -1,8 +1,8 @@
 {
     "project": "smoe",
     "notes": "",
-    "tags": ["BoatTime", "Short"],
+    "tags": ["09.09", "Short"],
     "learning_rate": 5e-6,
     "epochs": 3e3,
-    "warmup_length": 500 
+    "warmup_length": 50 
 }

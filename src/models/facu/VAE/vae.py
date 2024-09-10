@@ -59,6 +59,9 @@ class VariationalAutoencoder(SmoeModel):
     def loss(self, input: torch.Tensor, output: Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor], extra_information: torch.Tensor) -> Dict[str, Union[torch.Tensor, Any]]:
         return self.model.loss(input, output, extra_information)
 
+    def reconstruct_input(self, input: torch.Tensor) -> torch.Tensor:
+        return self.model.forward(input)[0]
+    
 class AutoVariationalAutoencoder(torch.nn.Module):
     def __init__(self, encoder_configs: Dict[str, Any], smoe_configs: Dict[str, Any], loss_configs: Dict[str, Any]):
         super().__init__()

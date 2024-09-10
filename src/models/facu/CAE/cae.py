@@ -90,6 +90,9 @@ class AutoConvolutionalAutoencoder(torch.nn.Module):
         x = self.decoder(x)
         return x
     
+    def reconstruct_input(self, input: torch.Tensor) -> torch.Tensor:
+        return self.forward(input)
+
     def loss(self, input: torch.Tensor, output: torch.Tensor, extra_information: Any) -> torch.Tensor:
         """Loss functions are made on a model by model basis. The trainers will just feed the whole output of the 
         model's forward function into the model's loss function, so you have control over what you need.

@@ -21,7 +21,7 @@ def train_with_synth_data(model: SmoeModel, run_cfg: Dict[str, Any], num_blocks:
     trainer = TrainWithSyntheticData(model, num_blocks=num_blocks)
     run_name = run_cfg.get("name", "")
     try:
-        trainer.train({**run_cfg}, "online")
+        trainer.train({**run_cfg}, "disabled")
     except KeyboardInterrupt as e:
         print("Interrupted training manually, going to next model :)")
     finally:
@@ -55,7 +55,7 @@ def finetune_with_real_data(model_config: Any, run_cfg: Dict[str, Any], batch_si
 if __name__ == "__main__":
     with open("src/trainers/configs/simple_training.json", "r") as f:
         train_config: Dict[str, Any] = json.load(f)
-    for model_class in [VqVae, ResNet, ConvolutionalAutoencoder, VariationalAutoencoder]:
+    for model_class in [VariationalAutoencoder, VqVae]:
         model_class: SmoeModel
         for block_size in [8, 16]:
             for n_kernels in range(1, 6):
