@@ -5,7 +5,6 @@ from src.data import DataLoader
 from src.models.base_model import SmoeModel
 from src.trainers.schedulers import LogarithmicResetLRScheduler
 from src.utils import Img2Block
-from PIL import Image
 import wandb
 
 from src.utils import Block2Img
@@ -54,8 +53,8 @@ class Trainer:
             pbar.desc = f"train_loss: {loss.item():.5f} - eval_loss: {eval_loss:.5f}"
 
         # TODO: Make Trainer abstract class or make the image logging into a class specific method. This is not good practice.
-        wandb.log({"Eval Image": Image.fromarray(self.blocks2img(eval_input).squeeze().cpu().numpy()),
-                   "Eval Reconstruction": Image.fromarray(self.blocks2img(best_eval_recon).squeeze().numpy())})
+        wandb.log({"Eval Image": wandb.Image(self.blocks2img(eval_input).squeeze().cpu().numpy()),
+                   "Eval Reconstruction": wandb.Image(self.blocks2img(best_eval_recon).squeeze().numpy())})
         # wandb.log_artifact(self.model)  # I really don't understand how these work
         run.finish()
         return self.model
