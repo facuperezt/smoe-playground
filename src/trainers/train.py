@@ -8,6 +8,8 @@ from src.utils import Img2Block
 from PIL import Image
 import wandb
 
+from src.utils import Block2Img
+
 __all__ = [
     "TrainWithSyntheticData",
     "TrainWithRealData"
@@ -51,7 +53,9 @@ class Trainer:
             pbar.update(epoch - pbar.n + 1)
             pbar.desc = f"train_loss: {loss.item():.5f} - eval_loss: {eval_loss:.5f}"
 
-        wandb.log({"Eval Image": Image.fromarray(eval_input.cpu().numpy()), "Eval Reconstruction": Image.fromarray(best_eval_recon.numpy())})
+        # TODO: Make Trainer abstract class or make the image logging into a class specific method. This is not good practice.
+        wandb.log({"Eval Image": Image.fromarray(self.blocks2img(eval_input).squeeze().cpu().numpy()),
+                   "Eval Reconstruction": Image.fromarray(self.blocks2img(best_eval_recon).squeeze().numpy())})
         # wandb.log_artifact(self.model)  # I really don't understand how these work
         run.finish()
         return self.model
@@ -82,6 +86,7 @@ class TrainWithSyntheticData(Trainer):
         super().__init__(model)
         self.dataloader = DataLoader("synthetic", self.model.n_kernels, self.model.block_size, "professional_photos")  # generate synthetic data, needs a dataset path to know which validation pic to use
         self.img2blocks = Img2Block(self.model.block_size, 384)
+        self.blocks2img = Block2Img(self.model.block_size, 384)
         self._get_training_data = lambda: self.dataloader.get(m=num_blocks)
         self._get_eval_data = lambda: self.img2blocks(self.dataloader.get_valid_pic())
 
@@ -90,5 +95,6 @@ class TrainWithRealData(Trainer):
         super().__init__(model)
         self.dataloader = DataLoader("dataset", self.model.n_kernels, self.model.block_size, "professional_photos", img_size=img_size, batch_size=batch_size)  # get real data
         self.img2blocks = Img2Block(self.model.block_size, img_size)
+        self.blocks2img = Block2Img(self.model.block_size, img_size)
         self._get_training_data = self.dataloader.get       
         self._get_eval_data = lambda: self.img2blocks(self.dataloader.get_valid_pic())

@@ -1,7 +1,7 @@
 {
     "project": "smoe",
     "notes": "",
-    "tags": ["09.09", "Short"],
+    "tags": ["10.09", "Medium"],
     "learning_rate": 5e-6,
     "epochs": 3e4,
     "warmup_length": 500
