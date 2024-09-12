@@ -27,6 +27,15 @@ def initialize_transforms(img_size: int = 512):
 
     return transforms
 
+def eval_deterministic_transform(img_size: int = 512) -> v2.Compose:
+    transforms = v2.Compose([
+        ToTensor(),
+        Grayscale(),
+        v2.CenterCrop(img_size),
+        v2.ToDtype(torch.float32, scale=False)
+    ])
+    return transforms
+
 class DataLoader:
     _dataloader_path = os.path.realpath(__file__).split("dataloader.py")[0]
 
@@ -41,6 +50,7 @@ class DataLoader:
         self.block_size = block_size
         self.img_size = img_size
         self.transforms = initialize_transforms(img_size)
+        self.eval_transform = eval_deterministic_transform(img_size)
         self.training_data = []
         self.validation_data = []
         self.training_data_path = os.path.join(os.path.realpath(__file__).split("dataloader.py")[0], data_path, "train")
@@ -62,7 +72,7 @@ class DataLoader:
         return self.get("train", None, 3)
 
     def get_valid_pic(self):
-        return self.transforms(Image.open(os.path.join(self.validation_data_path, os.pardir, "sample_comparisson_photo.png")).convert("RGB"))
+        return self.eval_transform(Image.open(os.path.join(self.validation_data_path, os.pardir, "sample_comparisson_photo.png")).convert("RGB"))
 
     @staticmethod
     def generate_samples(q: queue.Queue, n_batches, n_blocks, n_kernels, kernels_outside: bool = False, negative_experts: bool = False,
