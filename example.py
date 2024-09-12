@@ -51,7 +51,7 @@ def finetune_with_real_data(model_config: Any, run_cfg: Dict[str, Any], batch_si
             path = f'{get_class_name(model)}_{now}_real_data'
         model.save_model(path)
 
-
+print("Some change")
 if __name__ == "__main__":
     with open("src/trainers/configs/simple_training.json", "r") as f:
         train_config: Dict[str, Any] = json.load(f)
