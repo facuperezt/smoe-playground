@@ -81,11 +81,11 @@ class Trainer:
 
 
 class TrainWithSyntheticData(Trainer):
-    def __init__(self, model: torch.nn.Module, num_blocks: int = 1500):
+    def __init__(self, model: torch.nn.Module, num_blocks: int = 1500, img_size: int = 384):
         super().__init__(model)
-        self.dataloader = DataLoader("synthetic", self.model.n_kernels, self.model.block_size, "professional_photos")  # generate synthetic data, needs a dataset path to know which validation pic to use
-        self.img2blocks = Img2Block(self.model.block_size, 384)
-        self.blocks2img = Block2Img(self.model.block_size, 384)
+        self.dataloader = DataLoader("synthetic", self.model.n_kernels, self.model.block_size, "professional_photos", img_size)  # generate synthetic data, needs a dataset path to know which validation pic to use
+        self.img2blocks = Img2Block(self.model.block_size, img_size)
+        self.blocks2img = Block2Img(self.model.block_size, img_size)
         self._get_training_data = lambda: self.dataloader.get(m=num_blocks)
         self._get_eval_data = lambda: self.img2blocks(self.dataloader.get_valid_pic())
 
