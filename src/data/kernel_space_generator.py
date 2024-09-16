@@ -2,7 +2,7 @@
 from matplotlib import pyplot as plt
 import numpy as np
 import torch
-from src.utils.visualize_kernels import plot_block_with_kernels, plot_kernel_centers, plot_kernels_chol
+from src.utils.visualize_kernels import plot_block_with_kernels, plot_kernel_centers, plot_kernels_inv
 from src.models.components.decoders import SmoeDecoder
 
 def _sample_x(n: int = 10, pad: float = 0.1, device: torch.device = torch.device("cpu")):
