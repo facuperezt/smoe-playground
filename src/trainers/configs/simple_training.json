@@ -2,7 +2,7 @@
     "project": "smoe",
     "notes": "",
     "tags": ["10.09", "Medium"],
-    "learning_rate": 5e-6,
+    "learning_rate": 5e-5,
     "epochs": 3e4,
     "warmup_length": 500
 }

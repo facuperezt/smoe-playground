@@ -6,7 +6,7 @@ import tempfile
 from typing import Any, Dict
 import torch
 from src.models.base_model import SmoeModel
-from src.models import VariationalAutoencoder, ConvolutionalAutoencoder, ResNet, VqVae, Elvira2023Small, Elvira2023Full
+from src.models import VariationalAutoencoder, ConvolutionalAutoencoder, ResNet, VqVae, Elvira2023Small, Elvira2023Full, Vgg16
 from src.trainers import TrainWithSyntheticData, TrainWithRealData
 
 def analyse_model_size(model: SmoeModel):
@@ -54,10 +54,10 @@ def finetune_with_real_data(model_config: Any, run_cfg: Dict[str, Any], batch_si
 if __name__ == "__main__":
     with open("src/trainers/configs/simple_training.json", "r") as f:
         train_config: Dict[str, Any] = json.load(f)
-    for model_class in [VariationalAutoencoder, VqVae]:
+    for model_class in [Vgg16]:
         model_class: SmoeModel
         for block_size in [8, 16]:
-            for n_kernels in range(1, 6):
+            for n_kernels in range(2, 5):
                 tmp_file_path = os.path.join(tempfile.gettempdir(), "temp_config_training_smoe_playground.json")
                 with open(os.path.join(model_class._saves_path.replace(r"saves", "configs"), "base.json"), "r") as base_cfg:
                     adapted_cfg = json.load(base_cfg)

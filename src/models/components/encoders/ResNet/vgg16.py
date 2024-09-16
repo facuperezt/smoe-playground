@@ -1,3 +1,8 @@
+"""
+Adapted from:
+https://github.com/chongwar/vgg16-pytorch/blob/master/vgg16.py
+"""
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -8,6 +13,17 @@ __all__ = [
 ]
 
 
+class PoolIfPossible(nn.Module):
+    def __init__(self, kernel_size, stride):
+        super().__init__()
+        self.pool = nn.MaxPool2d(kernel_size=kernel_size, stride=stride)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        if x.squeeze().ndim == x.ndim:
+            return self.pool(x)
+        return x
+
+
 class VGG16(nn.Module):
 
     def __init__(self, num_classes: int, in_channels: int = 1):
@@ -16,7 +32,7 @@ class VGG16(nn.Module):
         # calculate same padding:
         # (w - k + 2*p)/s + 1 = o
         # => p = (s(o-1) - w + k)/2
-
+        self.pool = PoolIfPossible(kernel_size=(2, 2), stride=(2, 2))
         self.block_1 = nn.Sequential(
             nn.Conv2d(in_channels=in_channels,
                       out_channels=64,
@@ -33,8 +49,6 @@ class VGG16(nn.Module):
                       padding=1),
             nn.BatchNorm2d(64),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=(2, 2),
-                         stride=(2, 2))
         )
 
         self.block_2 = nn.Sequential(
@@ -52,8 +66,6 @@ class VGG16(nn.Module):
                       padding=1),
             nn.BatchNorm2d(128),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=(2, 2),
-                         stride=(2, 2))
         )
         
         self.block_3 = nn.Sequential(
@@ -78,8 +90,6 @@ class VGG16(nn.Module):
                       padding=1),
             nn.BatchNorm2d(256),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=(2, 2),
-                         stride=(2, 2))
         )
 
         self.block_4 = nn.Sequential(
@@ -104,8 +114,6 @@ class VGG16(nn.Module):
                       padding=1),
             nn.BatchNorm2d(512),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=(2, 2),
-                         stride=(2, 2))
         )
 
         self.block_5 = nn.Sequential(
@@ -130,8 +138,6 @@ class VGG16(nn.Module):
                       padding=1),
             nn.BatchNorm2d(512),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=(2, 2),
-                         stride=(2, 2))
         )
 
         self.classifier = nn.Sequential(
@@ -157,10 +163,15 @@ class VGG16(nn.Module):
     def forward(self, x: torch.Tensor):
 
         x = self.block_1(x)
+        x = self.pool(x)
         x = self.block_2(x)
+        x = self.pool(x)
         x = self.block_3(x)
+        x = self.pool(x)
         x = self.block_4(x)
+        x = self.pool(x)
         x = self.block_5(x)
+        x = self.pool(x)
         # x = self.avgpool(x)
         x = x.view(x.size(0), -1)
         logits = self.classifier(x)

@@ -29,7 +29,7 @@ class Vgg16(SmoeModel):
         self.n_kernels = n_kernels
         self.block_size = block_size
         self._cfg = copy.deepcopy(model_configs)
-        self.encoder = Vgg16Encoder(in_channels=1, out_features=7*n_kernels)
+        self.encoder = Vgg16Encoder(in_channels=1, num_classes=7*n_kernels)
         self.decoder = SmoeDecoder(n_kernels, block_size)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
