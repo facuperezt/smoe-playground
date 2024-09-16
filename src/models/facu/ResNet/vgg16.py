@@ -5,15 +5,15 @@ from typing import Any, Dict, Union
 import torch
 
 from src.models.components.decoders import SmoeDecoder
-from src.models.components.encoders import ResNetEncoder
+from src.models.components.encoders import Vgg16Encoder
 from src.models.base_model import SmoeModel
 
 __all__ = [
-    "ResNetWeirdness"
+    "Vgg16"
 ]
 
 
-class ResNetWeirdness(SmoeModel):
+class Vgg16(SmoeModel):
     _saves_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "saves")
     def __init__(self, config_path: str):
         try:
@@ -29,7 +29,7 @@ class ResNetWeirdness(SmoeModel):
         self.n_kernels = n_kernels
         self.block_size = block_size
         self._cfg = copy.deepcopy(model_configs)
-        self.encoder = ResNetEncoder(in_channels=1, out_features=7*n_kernels)
+        self.encoder = Vgg16Encoder(in_channels=1, out_features=7*n_kernels)
         self.decoder = SmoeDecoder(n_kernels, block_size)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
