@@ -1,8 +1,13 @@
 {
     "project": "smoe",
     "notes": "",
-    "tags": ["10.09", "Medium"],
-    "learning_rate": 5e-5,
-    "epochs": 3e4,
-    "warmup_length": 500
+    "tags": ["17.09", "Long"],
+    "learning_rate": 5e-6,
+    "epochs": 3e5,
+    "scheduler_configs": {
+        "warmup_length": 2500,
+        "min_lr": 5e-8,
+        "patience": 20,
+        "factor": 4e-4
+    }
 }

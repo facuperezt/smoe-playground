@@ -30,7 +30,7 @@ class Trainer:
         )
         wandb.config = {"train_configs": cfg, "model_configs": self.model.cfg}
         optim = torch.optim.AdamW(self.model.parameters(), lr=cfg["learning_rate"])
-        sched_lr = LogarithmicResetLRScheduler(optim, warmup_length=cfg["warmup_length"])
+        sched_lr = LogarithmicResetLRScheduler(optim, **cfg["scheduler_configs"])
         self.model.to("cuda")
         self.model.train()
         eval_input = self.get_data("eval").cuda().requires_grad_(False)
