@@ -40,7 +40,7 @@ def finetune_with_real_data(model: SmoeModel, run_cfg: Dict[str, Any], batch_siz
     trainer = TrainWithRealData(model, batch_size=batch_size)
     run_name = run_cfg.get("name", "")
     try:
-        trainer.train({**run_cfg}, "disabled")
+        trainer.train({**run_cfg}, "online")
     except KeyboardInterrupt as e:
         print("Interrupted training manually, going to next model :)")
     finally:
@@ -67,8 +67,15 @@ if __name__ == "__main__":
                     json.dump(adapted_cfg, tmp_cfg)
                 model = model_class(config_path=tmp_file_path)
                 analyse_model_size(model)
-                # train_with_synth_data(model, run_cfg={**train_config, "name": f"{model.__class__.__name__}_{n_kernels}_k_{block_size}_bs_synth"}, num_blocks=500)
-                finetune_with_real_data(model, run_cfg={**train_config, "load_model_from": f"{model.__class__.__name__}_{n_kernels}_k_{block_size}_bs_synth_<latest>"}, batch_size=5)
+                # train_with_synth_data(model, run_cfg={
+                #     **train_config,
+                #     "name": f"{model.__class__.__name__}_{n_kernels}_k_{block_size}_bs_synth"
+                #     }, num_blocks=500)
+                finetune_with_real_data(model, run_cfg={
+                    **train_config,
+                    "load_model_from": f"{model.__class__.__name__}_{n_kernels}_k_{block_size}_bs_synth_<latest>",
+                    "name": f"{model.__class__.__name__}_{n_kernels}_k_{block_size}_bs_real"
+                    }, batch_size=10)
                 del model
                 gc.collect()
                 torch.cuda.empty_cache()
