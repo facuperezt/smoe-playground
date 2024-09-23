@@ -16,10 +16,9 @@ from src.utils.blocking_helper import Img2Block
 
 def initialize_transforms(img_size: int = 512):
     transforms = v2.Compose([
-        ToTensor(),
+        v2.ToImage(),
         Grayscale(),
-        v2.RandomCrop(size=(img_size, img_size)),
-        v2.RandomResizedCrop(size=(img_size, img_size), antialias=True),
+        v2.RandomResizedCrop(size=(img_size, img_size), scale=(0.9, 1.0), antialias=True),
         v2.RandomHorizontalFlip(p=0.5),
         v2.RandomVerticalFlip(p=0.5),
         v2.ToDtype(torch.float32, scale=False),
