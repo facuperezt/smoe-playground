@@ -74,7 +74,7 @@ if __name__ == "__main__":
                 finetune_with_real_data(model, run_cfg={
                     **train_config,
                     "load_model_from": f"{model.__class__.__name__}_{n_kernels}_k_{block_size}_bs_synth_<latest>",
-                    "name": f"{model.__class__.__name__}_{n_kernels}_k_{block_size}_bs_real"
+                    "name": f"{model.__class__.__name__}_{n_kernels}_k_{block_size}_bs_real_ft"
                     }, batch_size=10)
                 del model
                 gc.collect()
