@@ -54,9 +54,9 @@ def finetune_with_real_data(model: SmoeModel, run_cfg: Dict[str, Any], batch_siz
 if __name__ == "__main__":
     with open("src/trainers/configs/simple_training.json", "r") as f:
         train_config: Dict[str, Any] = json.load(f)
-    for model_class in [Vgg16]:
+    for model_class in [ResNet]:
         model_class: SmoeModel
-        for block_size in [16]:
+        for block_size in [8, 16]:
             for n_kernels in range(2, 5):
                 tmp_file_path = os.path.join(tempfile.gettempdir(), "temp_config_training_smoe_playground.json")
                 with open(os.path.join(model_class._saves_path.replace(r"saves", "configs"), "base.json"), "r") as base_cfg:
