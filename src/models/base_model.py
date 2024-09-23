@@ -99,5 +99,4 @@ class SmoeModel(torch.nn.Module):
             self.load_state_dict(torch.load(os.path.join(current_path, "state_dict.pth")))
         except RuntimeError as e:
             print(f"PyTorch failed to load the model, original error message:\n\n{e}\n\n")
-            raise IOError(f"File {os.path.join(current_path, "state_dict.pth")} is most likely "
-                          f"corrupted and cannot be read correctly by PyTorch.")
+            raise IOError(f"File {os.path.join(current_path, 'state_dict.pth')} is most likely corrupted and cannot be read correctly by PyTorch.")
