@@ -57,7 +57,7 @@ if __name__ == "__main__":
     for model_class in [ResNet]:
         model_class: SmoeModel
         for block_size in [8, 16]:
-            for n_kernels in range(2, 5):
+            for n_kernels in range(4, 5):
                 tmp_file_path = os.path.join(tempfile.gettempdir(), "temp_config_training_smoe_playground.json")
                 with open(os.path.join(model_class._saves_path.replace(r"saves", "configs"), "base.json"), "r") as base_cfg:
                     adapted_cfg = json.load(base_cfg)
@@ -75,7 +75,7 @@ if __name__ == "__main__":
                     **train_config,
                     "load_model_from": f"{model.__class__.__name__}_{n_kernels}_k_{block_size}_bs_synth_<latest>",
                     "name": f"{model.__class__.__name__}_{n_kernels}_k_{block_size}_bs_real_ft"
-                    }, batch_size=10)
+                    }, batch_size=3)
                 del model
                 gc.collect()
                 torch.cuda.empty_cache()
