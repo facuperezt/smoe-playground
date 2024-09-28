@@ -32,15 +32,15 @@ def train_with_synth_data(model: SmoeModel, run_cfg: Dict[str, Any], num_blocks:
             path = f'{get_class_name(model)}_{now}_synth_data'
         model.save_model(path)
 
-def finetune_with_real_data(model_config: Any, run_cfg: Dict[str, Any], batch_size: int = 15):
-    # model: SmoeModel = VariationalAutoencoder("wide/manual_simple_ae.json")
-    # model = ResNet(n_kernels=n_kernels, block_size=32)
-    model: SmoeModel = VqVae(model_config)
-    model.load_model(torch.load(f"{get_class_name(model)}_synth_data"))
+def finetune_with_real_data(model: SmoeModel, run_cfg: Dict[str, Any], batch_size: int = 15):
+    load_from = run_cfg.get("load_model_from", "")
+    if load_from == "":
+        load_from = f'{get_class_name(model)}_<latest>_synth_data'
+    model.load_model(load_from)
     trainer = TrainWithRealData(model, batch_size=batch_size)
     run_name = run_cfg.get("name", "")
     try:
-        trainer.train(run_cfg)
+        trainer.train({**run_cfg}, "online")
     except KeyboardInterrupt as e:
         print("Interrupted training manually, going to next model :)")
     finally:
@@ -54,10 +54,10 @@ def finetune_with_real_data(model_config: Any, run_cfg: Dict[str, Any], batch_si
 if __name__ == "__main__":
     with open("src/trainers/configs/simple_training.json", "r") as f:
         train_config: Dict[str, Any] = json.load(f)
-    for model_class in [Vgg16]:
+    for model_class in [ResNet]:
         model_class: SmoeModel
         for block_size in [8, 16]:
-            for n_kernels in range(2, 5):
+            for n_kernels in range(4, 5):
                 tmp_file_path = os.path.join(tempfile.gettempdir(), "temp_config_training_smoe_playground.json")
                 with open(os.path.join(model_class._saves_path.replace(r"saves", "configs"), "base.json"), "r") as base_cfg:
                     adapted_cfg = json.load(base_cfg)
@@ -67,8 +67,15 @@ if __name__ == "__main__":
                     json.dump(adapted_cfg, tmp_cfg)
                 model = model_class(config_path=tmp_file_path)
                 analyse_model_size(model)
-                train_with_synth_data(model, run_cfg={**train_config, "name": f"{model.__class__.__name__}_{n_kernels}_k_{block_size}_bs_synth"}, num_blocks=500)
-                # finetune_with_real_data(model_config=f"base_vqgan_{i}.json", run_cfg={**cfg, "name": f"{i}_kernels_real"})
+                # train_with_synth_data(model, run_cfg={
+                #     **train_config,
+                #     "name": f"{model.__class__.__name__}_{n_kernels}_k_{block_size}_bs_synth"
+                #     }, num_blocks=500)
+                finetune_with_real_data(model, run_cfg={
+                    **train_config,
+                    "load_model_from": f"{model.__class__.__name__}_{n_kernels}_k_{block_size}_bs_real_ft_<latest>",
+                    "name": f"{model.__class__.__name__}_{n_kernels}_k_{block_size}_bs_real_double_ft"
+                    }, batch_size=4)
                 del model
                 gc.collect()
                 torch.cuda.empty_cache()

@@ -82,10 +82,21 @@ class SmoeModel(torch.nn.Module):
             self.load_state_dict(torch.load(path))
             return
         current_path = os.path.join(self.saves_path, path)
+        if "<latest>" in path:
+            dirname = os.path.dirname(current_path)
+            all_models_in_dir = os.listdir(dirname)
+            filtered_models_in_dir = [save for save in all_models_in_dir if save.startswith(path.split("<latest>")[0])]
+            latest_matching_model = filtered_models_in_dir[-1]
+            current_path = os.path.join(dirname, latest_matching_model)
+
         with open(os.path.join(current_path, "model_configs.json"), "r") as f:
             cfg = json.load(f)
         diff = DeepDiff(self.cfg, cfg)
         if len(diff) > 0:
             print("Model configuration and loaded configuration do not match.\n")
             print(diff)
-        self.load_state_dict(torch.load(os.path.join(current_path, "state_dict.pth")))
+        try:
+            self.load_state_dict(torch.load(os.path.join(current_path, "state_dict.pth")))
+        except RuntimeError as e:
+            print(f"PyTorch failed to load the model, original error message:\n\n{e}\n\n")
+            raise IOError(f"File {os.path.join(current_path, 'state_dict.pth')} is most likely corrupted and cannot be read correctly by PyTorch.")

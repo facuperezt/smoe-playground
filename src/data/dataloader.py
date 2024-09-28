@@ -16,10 +16,9 @@ from src.utils.blocking_helper import Img2Block
 
 def initialize_transforms(img_size: int = 512):
     transforms = v2.Compose([
-        ToTensor(),
+        v2.ToImage(),
         Grayscale(),
-        v2.RandomCrop(size=(img_size, img_size)),
-        v2.RandomResizedCrop(size=(img_size, img_size), antialias=True),
+        v2.RandomResizedCrop(size=(img_size, img_size), scale=(0.9, 1.0), antialias=True),
         v2.RandomHorizontalFlip(p=0.5),
         v2.RandomVerticalFlip(p=0.5),
         v2.ToDtype(torch.float32, scale=False),
@@ -60,7 +59,7 @@ class DataLoader:
                 raise ValueError("Need to provide a path to the dataset.")
             self.initialized = False
             self.initialize(n_repeats, force_reinitialize)
-            self._dataset_train = cycle(self._get("train", None))
+            self._dataset_train = self._get("train", None)
             self.mode = "dataset"
             self.img2blocks = Img2Block(block_size, img_size, 1)
         else:
@@ -115,11 +114,11 @@ class DataLoader:
             out =  self.get_m_blocks_with_n_kernels(*args, **kwargs)
             return {"input": self.decoder(out), "loss": out}
         elif self.mode == "dataset":
-            out: torch.Tensor = next(self._dataset_train)
-            if out.numel() == 0:
-                out = next(self._dataset_train)
-            if out.numel() == 0:
-                raise ValueError("Iterator be trippin")
+            try:
+                out: torch.Tensor = next(self._dataset_train)
+            except StopIteration:
+                self._dataset_train = self._get("train", None)
+                out: torch.Tensor = next(self._dataset_train)
             return {"input": self.img2blocks(out).to(self.device), "loss": None}
 
     def initialize(self, n_repeats: int = 3, force_reinitialize: bool = False) -> None:

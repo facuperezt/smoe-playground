@@ -1,4 +1,4 @@
-from typing import Any, Dict, Literal, Tuple
+from typing import Any, Dict, Literal, Optional, Tuple
 import torch
 import tqdm
 from src.data import DataLoader
@@ -33,8 +33,8 @@ class Trainer:
         sched_lr = LogarithmicResetLRScheduler(optim, **cfg["scheduler_configs"])
         self.model.to("cuda")
         self.model.train()
-        eval_input = self.get_data("eval").cuda().requires_grad_(False)
-        best_eval_recon, best_eval_loss = self.eval_model(eval_input)
+        self.eval_input = self.get_data("eval").cuda().requires_grad_(False)
+        self.best_eval_recon, best_eval_loss = self.eval_model(self.eval_input)
         pbar = tqdm.tqdm(total=cfg["epochs"], desc=f"train_loss: {0.00:.5f} - eval_loss: {0.0:.5f}")
         for epoch in range(int(cfg["epochs"])):
             optim.zero_grad()
@@ -42,22 +42,32 @@ class Trainer:
             out = self.model(data["input"])
             loss, logging = self.model.loss(data["input"], out, data["loss"])
             loss.backward()
-            eval_recon, eval_loss = self.eval_model(eval_input) 
+            eval_recon, eval_loss = self.eval_model(self.eval_input) 
             if eval_loss < best_eval_loss:
                 best_eval_loss = eval_loss
-                best_eval_recon = eval_recon
+                self.best_eval_recon = eval_recon
             wandb.log({"loss": loss.item(), **logging, "learning_rate": sched_lr.get_lr()[0], "Eval Reconstruction Loss": eval_loss})
             optim.step()
             sched_lr.step(loss.item())
             pbar.update(epoch - pbar.n + 1)
             pbar.desc = f"train_loss: {loss.item():.5f} - eval_loss: {eval_loss:.5f}"
 
-        # TODO: Make Trainer abstract class or make the image logging into a class specific method. This is not good practice.
-        wandb.log({"Eval Image": wandb.Image(self.blocks2img(eval_input).squeeze().cpu().numpy()),
-                   "Eval Reconstruction": wandb.Image(self.blocks2img(best_eval_recon).squeeze().numpy())})
-        # wandb.log_artifact(self.model)  # I really don't understand how these work
         run.finish()
         return self.model
+
+    def log_images(self, eval_input: Optional[torch.Tensor] = None, best_eval_recon: Optional[torch.Tensor] = None) -> None:
+        try:
+            if eval_input is None:
+                eval_input = self.eval_input
+            if best_eval_recon is None:
+                best_eval_recon =  self.best_eval_recon
+            wandb.log({"Eval Image": wandb.Image(self.blocks2img(eval_input).squeeze().cpu().numpy()),
+                    "Eval Reconstruction": wandb.Image(self.blocks2img(best_eval_recon).squeeze().numpy())})
+        except Exception as e:
+            # TODO: Investigate the kind of errors this could throw (not defined for the self methods and if the tensors have wrong shape probs)
+            print("Logging Image failed for SOME reason. Catching the error and printing it to avoid stuff crashing. BAD PRACTICE!")
+            print("\n"+"="*20+"\n", e, "\n"+"="*20+"\n")
+
 
     def eval_model(self, eval_input: torch.Tensor) -> Tuple[torch.Tensor, float]:
         with torch.no_grad():
