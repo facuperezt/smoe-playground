@@ -118,6 +118,7 @@ class DataLoader:
                 out: torch.Tensor = next(self._dataset_train)
             except StopIteration:
                 self._dataset_train = self._get("train", None)
+                out: torch.Tensor = next(self._dataset_train)
             return {"input": self.img2blocks(out).to(self.device), "loss": None}
 
     def initialize(self, n_repeats: int = 3, force_reinitialize: bool = False) -> None:
