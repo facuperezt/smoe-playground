@@ -30,7 +30,7 @@ class Trainer:
         )
         wandb.config = {"train_configs": cfg, "model_configs": self.model.cfg}
         optim = torch.optim.AdamW(self.model.parameters(), lr=cfg["learning_rate"])
-        sched_lr = LogarithmicResetLRScheduler(optim, **cfg["scheduler_configs"])
+        sched_lr = LogarithmicResetLRScheduler(optim, **cfg["scheduler_configs"], callbacks_on_reset=[self.log_images, self.model.save_model])
         self.model.to("cuda")
         self.model.train()
         self.eval_input = self.get_data("eval").cuda().requires_grad_(False)
@@ -61,12 +61,13 @@ class Trainer:
                 eval_input = self.eval_input
             if best_eval_recon is None:
                 best_eval_recon =  self.best_eval_recon
-            wandb.log({"Eval Image": wandb.Image(self.blocks2img(eval_input).squeeze().cpu().numpy()),
-                    "Eval Reconstruction": wandb.Image(self.blocks2img(best_eval_recon).squeeze().numpy())})
+            if wandb.run is not None:
+                wandb.log({"Eval Image": wandb.Image(self.blocks2img(eval_input).squeeze().cpu().numpy()),
+                        "Eval Reconstruction": wandb.Image(self.blocks2img(best_eval_recon).squeeze().numpy())})
         except Exception as e:
             # TODO: Investigate the kind of errors this could throw (not defined for the self methods and if the tensors have wrong shape probs)
             print("Logging Image failed for SOME reason. Catching the error and printing it to avoid stuff crashing. BAD PRACTICE!")
-            print("\n"+"="*20+"\n", e, "\n"+"="*20+"\n")
+            print("\n"+"="*len(str(e))+"\n", e, "\n"+"="*len(str(e))+"\n")
 
 
     def eval_model(self, eval_input: torch.Tensor) -> Tuple[torch.Tensor, float]:
@@ -91,18 +92,18 @@ class Trainer:
 
 
 class TrainWithSyntheticData(Trainer):
-    def __init__(self, model: torch.nn.Module, num_blocks: int = 1500, img_size: int = 384):
+    def __init__(self, model: torch.nn.Module, num_blocks: int = 1500, img_size: int = 384, rescale_range: Tuple[int, int] = (0, 1)):
         super().__init__(model)
-        self.dataloader = DataLoader("synthetic", self.model.n_kernels, self.model.block_size, "professional_photos", img_size)  # generate synthetic data, needs a dataset path to know which validation pic to use
+        self.dataloader = DataLoader("synthetic", self.model.n_kernels, self.model.block_size, "professional_photos", img_size, rescale_range=rescale_range)  # generate synthetic data, needs a dataset path to know which validation pic to use
         self.img2blocks = Img2Block(self.model.block_size, img_size)
         self.blocks2img = Block2Img(self.model.block_size, img_size)
         self._get_training_data = lambda: self.dataloader.get(m=num_blocks)
         self._get_eval_data = lambda: self.img2blocks(self.dataloader.get_valid_pic())
 
 class TrainWithRealData(Trainer):
-    def __init__(self, model: torch.nn.Module, batch_size: int = 15, img_size: int = 384):
+    def __init__(self, model: torch.nn.Module, batch_size: int = 15, img_size: int = 384, rescale_range: Tuple[int, int] = (0, 1)):
         super().__init__(model)
-        self.dataloader = DataLoader("dataset", self.model.n_kernels, self.model.block_size, "professional_photos", img_size=img_size, batch_size=batch_size)  # get real data
+        self.dataloader = DataLoader("dataset", self.model.n_kernels, self.model.block_size, "professional_photos", img_size=img_size, batch_size=batch_size, rescale_range=rescale_range)  # get real data
         self.img2blocks = Img2Block(self.model.block_size, img_size)
         self.blocks2img = Block2Img(self.model.block_size, img_size)
         self._get_training_data = self.dataloader.get       

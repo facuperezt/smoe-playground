@@ -1,6 +1,7 @@
 #%%
-%load_ext autoreload
-%autoreload 2
+from IPython import get_ipython
+get_ipython().run_line_magic("load_ext", "autoreload")
+get_ipython().run_line_magic("autoreload", "2")
 from typing import List, Optional, Tuple, Union
 import torch
 import numpy as np
@@ -47,8 +48,8 @@ class Explainer:
         out = out[:max_elems].detach().cpu()
         relevance = relevance[:max_elems].detach().cpu()
         
-        fig, axs = plt.subplots(max_elems, 3, figsize=(2*3*max_elems, 3*3))
-        axs: np.ndarray = axs.reshape((-1, 3))
+        fig, axs = plt.subplots(max_elems, 4, figsize=(2*3*max_elems, 3*3))
+        axs: np.ndarray = axs.reshape((-1, 4))
         for in_block, out_block, rel_block, kernel_parameters, ax_row in zip(input, out, relevance, all_kernels_parameters, axs):
             in_block = in_block.squeeze()
             out_block = out_block.squeeze()
@@ -56,8 +57,9 @@ class Explainer:
             ax_row: List[plt.Axes]
             self._plot(ax_row[0], in_block)
             self._plot(ax_row[1], out_block)
-            self._plot(ax_row[1], kernel_parameters)
-            self._plot(ax_row[2], rel_block)
+            self._plot(ax_row[2], out_block)
+            self._plot(ax_row[2], kernel_parameters)
+            self._plot(ax_row[3], rel_block)
 
     def _plot(self, ax: plt.Axes, content: torch.Tensor, vmin: Optional[float] = None, vmax: Optional[float] = None):
         ax.axis("off")
@@ -77,10 +79,10 @@ class Explainer:
         return self.forward(*args, **kwargs)
 
 model = ResNet("test_xai.json")
-model.load_model("ResNetWeirdness_2_k_8_bs_synth_2024-09-16__19_09_09.428861")
+model.load_model("ResNetWeirdness_4_k_8_bs_real_ft_<latest>")
 dataloader = DataLoader("synthetic", n_kernels=model.n_kernels, block_size=model.block_size, data_path="professional_photos", img_size=384, device="cuda")
 exp = Explainer(model)
 model.cuda()
-data = dataloader.get(4)
-exp.plot(data["input"])
+data = dataloader.get(2)
+exp.plot(data["input"], 2)
 # %%

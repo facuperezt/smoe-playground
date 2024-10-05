@@ -1,6 +1,6 @@
 {
     "smoe_configs": {
-        "n_kernels": 2,
+        "n_kernels": 4,
         "block_size": 8
     }
 }

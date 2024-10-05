@@ -53,7 +53,7 @@ def _sample_chol_decomp_2d(m: int, n: int, vmin: float = -5, vmax: float = 5, in
         return torch.stack((a, z, b, c), dim=2).reshape(m, n, -1)
     return torch.stack((a, b, c), dim=2).reshape(m, n, -1)
 #%%
-def get_m_samples(n_blocks: int, n_kernels: int, kernels_outside: bool = False, negative_experts: bool = False, vmin: float = -5, vmax: float = 5, include_zero: bool = True,
+def get_m_samples(n_blocks: int, n_kernels: int, kernels_outside: bool = False, negative_experts: bool = False, vmin: float = -15, vmax: float = 15, include_zero: bool = True,
                   device: torch.device = torch.device("cpu")):
     if kernels_outside:
         pad = 0.5

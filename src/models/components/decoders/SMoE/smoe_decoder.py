@@ -1,3 +1,4 @@
+from typing import Tuple
 import torch
 import numpy as  np
 
@@ -5,19 +6,25 @@ class VanillaSMoE(torch.nn.Module):
     """
     SMoE implemented in PyTorch, which allows for the gradients to be calculated with autograd
     """
-    def __init__(self, n_kernels: int = 4, block_size: int = 8, device: torch.device = torch.device("cpu")):
+    def __init__(self, n_kernels: int = 4, block_size: int = 8, device: torch.device = torch.device("cpu"), rescale_range: Tuple[int, int] = (None, None)):
         super().__init__()
         self.n_kernels = n_kernels
         self.block_size = block_size
         x = torch.linspace(0, 1, block_size, dtype=torch.float32)
         y = torch.linspace(0, 1, block_size, dtype=torch.float32)
         self.domain_init = torch.nn.Parameter(torch.tensor(np.array(np.meshgrid(x, y)).T.reshape([block_size ** 2, 2]), dtype=torch.float32, device=device, requires_grad=False))
+        self.rescale_range = rescale_range
         pass
 
     def forward(self, x: torch.Tensor) -> np.ndarray:
         if x.ndim == 2:
-            return self.torch_smoe(x)
-        return torch.stack([self.torch_smoe(_x) for _x in x])
+            out = self.torch_smoe(x)
+        else:
+            out = torch.stack([self.torch_smoe(_x) for _x in x])
+        if not any(range_limit is None for range_limit in self.rescale_range):
+            assert self.rescale_range[1] - self.rescale_range[0] > 0, "Rescale Range in SMoE Decoder is invalid."
+            out = (out*(self.rescale_range[1] - self.rescale_range[0]))+self.rescale_range[0]
+        return out
 
     def to(self, device: torch.device):
         if isinstance(device, str):
@@ -57,7 +64,8 @@ class VanillaSMoE(torch.nn.Module):
         w_e_op = n_exp / n_w_norm
 
         res = (w_e_op * nue_e.unsqueeze(-1)).sum(dim=1)
-        res = torch.clamp(res, min=0, max=1)
+        if any(range_limit is not None for range_limit in self.rescale_range):
+            res = torch.clamp(res, min=self.rescale_range[0], max=self.rescale_range[1])
         res = res.view(-1, block_size, block_size)
 
         return res.reshape(-1, 1, block_size, block_size)
