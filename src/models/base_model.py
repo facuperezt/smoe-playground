@@ -1,7 +1,7 @@
 from abc import abstractmethod
 import json
 import os
-from typing import Any, Dict, Tuple, TypeVar
+from typing import Any, Dict, Optional, Tuple, TypeVar
 import torch
 from deepdiff.diff import DeepDiff
 T = TypeVar('T', bound='SmoeModel')
@@ -11,6 +11,10 @@ __all__ = [
 ]
 
 class SmoeModel(torch.nn.Module):
+    def __init__(self: T):
+        super().__init__()
+        self._saved_models_no_args = 0
+
     @property
     def cfg(self: T) -> Dict[str, Any]:
         """Dictionary containing all of the models used configs.
@@ -25,6 +29,10 @@ class SmoeModel(torch.nn.Module):
     @property
     def saves_path(self: T) -> str:
         return self._saves_path
+
+    @property
+    def num_params(self: T) -> int:
+        return sum(p.numel() for p in self.parameters())
 
     @abstractmethod
     def loss(self: T, input: torch.Tensor, output: Any, extra_information: Any) -> Tuple[torch.Tensor, Dict[str, Any]]:
@@ -56,14 +64,17 @@ class SmoeModel(torch.nn.Module):
         """
         pass
 
-    def save_model(self: T, path: str) -> None:
+    def save_model(self: T, path: Optional[str] = None) -> None:
         """Saves the model's state dict in path. If the path is not findable, store it in the same folder
         where the model's source code and configs are
 
         Args:
             path (str): Either a full path or a file name
         """
-        if os.path.isdir(os.path.dirname(path)):
+        if path is None:
+            path = os.path.join("current_run", str(self._saved_models_no_args))
+            self._saved_models_no_args += 1
+        elif os.path.isdir(os.path.dirname(path)):
             torch.save(self.state_dict(), path)
             return
         current_path = os.path.join(self.saves_path, path)

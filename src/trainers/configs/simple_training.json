@@ -1,13 +1,30 @@
 {
-    "project": "smoe",
-    "notes": "",
-    "tags": ["17.09", "Long"],
-    "learning_rate": 5e-6,
-    "epochs": 3e5,
-    "scheduler_configs": {
-        "warmup_length": 2500,
-        "min_lr": 5e-8,
-        "patience": 20,
-        "factor": 4e-4
-    }
+    "synth": {
+        "project": "smoe-good",
+        "notes": "",
+        "tags": ["02.10", "Middle", "FromScratch"],
+        "learning_rate": 5e-5,
+        "epochs": 5e4,
+        "scheduler_configs": {
+            "warmup_length": 2500,
+            "min_lr": 5e-8,
+            "patience": 10,
+            "factor": 1.5e-3
+        }
+    },
+    "real": {
+        "project": "smoe-good",
+        "notes": "",
+        "tags": ["02.10", "Middle", "FinteTuning"],
+        "learning_rate": 5e-6,
+        "epochs": 3e3,
+        "scheduler_configs": {
+            "warmup_length": 200,
+            "min_lr": 5e-8,
+            "patience": 10,
+            "factor": 8e-3
+        }
+    },
+    "original_data_range": [0, 1],
+    "rescale_data_range": [-1, 1]
 }

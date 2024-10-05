@@ -1,7 +1,7 @@
 #%%
 import copy
 import math
-from typing import Optional, Union
+from typing import Callable, List, Optional, Union
 from torch.optim.lr_scheduler import _LRScheduler
 
 
@@ -11,7 +11,7 @@ __all__ = [
 
 
 class LogarithmicResetLRScheduler(_LRScheduler):
-    def __init__(self, optimizer, factor=3e-3, patience=15, min_lr=1e-8, reset_factor=0.75, warmup_length: int = 5000, verbose=False):
+    def __init__(self, optimizer, factor=3e-3, patience=15, min_lr=1e-8, reset_factor=0.75, warmup_length: int = 5000, verbose=False, callbacks_on_reset: Optional[List[Callable]] = None):
         self.factor = factor
         self.patience = patience
         self.min_lr = min_lr
@@ -24,8 +24,12 @@ class LogarithmicResetLRScheduler(_LRScheduler):
         self.start_lrs = copy.deepcopy(self.initial_lrs)
         self.decay_steps = 0
         self.len_warmup = max(1, warmup_length)
+        self.rate_warmup = 100
         self.orig_len_warmup = copy.deepcopy(self.len_warmup)
         self.warmup_steps = 1
+        self.callbacks = []
+        if callbacks_on_reset is not None:
+            self.callbacks = callbacks_on_reset
         super().__init__(optimizer)
 
     def step(self, metrics: Optional[Union[float, int]] = None, epoch: Optional[int] = None):
@@ -46,8 +50,7 @@ class LogarithmicResetLRScheduler(_LRScheduler):
             factor = self.warmup_steps/self.len_warmup
             for param_group, lr in zip(self.optimizer.param_groups, self.start_lrs):
                 # A lower rate makes it more linear, a higher rate makes it more exponential
-                rate = 200
-                param_group["lr"] = lr * (rate**factor - 1)/(rate - 1)
+                param_group["lr"] = lr * (self.rate_warmup**factor - 1)/(self.rate_warmup - 1)
             self.warmup_steps += 1
         elif self.num_bad_epochs > self.patience:
             if current_lr > self.min_lr:
@@ -60,6 +63,8 @@ class LogarithmicResetLRScheduler(_LRScheduler):
             else:
                 self.decay_steps = 0
                 for i, (param_group, initial_lr) in enumerate(zip(self.optimizer.param_groups, self.initial_lrs)):
+                    for callback in self.callbacks:
+                        callback()
                     # Once the learning rate has reached the minimum, reset it.
                     new_lr = initial_lr * self.reset_factor
                     if new_lr > self.min_lr:
@@ -103,10 +108,10 @@ if __name__ == "__main__":
         def forward(self, x):
             return x * self.weights
 
-    optim = torch.optim.SGD(DummyClass().parameters(), lr=1e-6)
-    scheduler = LogarithmicResetLRScheduler(optim, warmup_length=500)
+    optim = torch.optim.SGD(DummyClass().parameters(), lr=5e-5)
+    scheduler = LogarithmicResetLRScheduler(optim, warmup_length=2500, factor=1.5e-3, patience=10, min_lr=5e-8)
     vals = []
-    for i in range(15000):
+    for i in range(int(3e4)):
         scheduler.step(i)
         vals.append(optim.param_groups[0]["lr"])
     plt.plot(vals)

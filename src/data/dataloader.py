@@ -1,5 +1,5 @@
 import pickle
-from typing import Literal, Optional
+from typing import Literal, Optional, Tuple
 import torch 
 from torchvision.transforms import v2, ToTensor, Grayscale
 import os
@@ -14,7 +14,26 @@ import queue
 from src.models.components.decoders import SmoeDecoder
 from src.utils.blocking_helper import Img2Block
 
-def initialize_transforms(img_size: int = 512):
+def init_rescale_to_range(rescale_range: Tuple[int, int] = ((0, 1))):
+    len_of_interval = rescale_range[1] - rescale_range[0]
+    assert len_of_interval > 0
+    bypass = rescale_range == (0, 1)
+    def rescale_to_range(tensor: torch.Tensor) -> torch.Tensor:
+        """Assumes that the tensor is in (0, 1) range.
+
+        Args:
+            tensor (torch.Tensor): Tensor to rescale
+
+        Returns:
+            torch.Tensor: Rescaled Tensor
+        """
+        if bypass: return tensor
+        tensor = (tensor*len_of_interval) + rescale_range[0]
+        return tensor
+    return rescale_to_range
+
+
+def initialize_transforms(img_size: int = 512, rescale_range: Tuple[int, int] = ((0, 1))):
     transforms = v2.Compose([
         v2.ToImage(),
         Grayscale(),
@@ -22,16 +41,18 @@ def initialize_transforms(img_size: int = 512):
         v2.RandomHorizontalFlip(p=0.5),
         v2.RandomVerticalFlip(p=0.5),
         v2.ToDtype(torch.float32, scale=False),
+        v2.Lambda(init_rescale_to_range(rescale_range)),
     ])
 
     return transforms
 
-def eval_deterministic_transform(img_size: int = 512) -> v2.Compose:
+def eval_deterministic_transform(img_size: int = 512, rescale_range: Tuple[int, int] = ((0, 1))) -> v2.Compose:
     transforms = v2.Compose([
         ToTensor(),
         Grayscale(),
         v2.CenterCrop(img_size),
-        v2.ToDtype(torch.float32, scale=False)
+        v2.ToDtype(torch.float32, scale=False),
+        v2.Lambda(init_rescale_to_range(rescale_range)),
     ])
     return transforms
 
@@ -40,7 +61,7 @@ class DataLoader:
 
     def __init__(self, mode: Literal["dataset", "synthetic"], n_kernels: int = 4, block_size: int = 16, data_path: str = "", img_size: int = 512, n_repeats: int = 5,
                  force_reinitialize: bool = False, batch_size: int = 25, kernels_outside: bool = False,
-                 negative_experts: bool = False, device: torch.device = "cuda"):
+                 negative_experts: bool = False, device: torch.device = "cuda", rescale_range: Tuple[int, int] = (0, 1)):
         self.batch_size = batch_size
         self.n_kernels = n_kernels
         self.kernels_outside = kernels_outside
@@ -48,12 +69,13 @@ class DataLoader:
         self.device = device
         self.block_size = block_size
         self.img_size = img_size
-        self.transforms = initialize_transforms(img_size)
-        self.eval_transform = eval_deterministic_transform(img_size)
+        self.transforms = initialize_transforms(img_size, rescale_range)
+        self.eval_transform = eval_deterministic_transform(img_size, rescale_range)
         self.training_data = []
         self.validation_data = []
         self.training_data_path = os.path.join(os.path.realpath(__file__).split("dataloader.py")[0], data_path, "train")
         self.validation_data_path = os.path.join(os.path.realpath(__file__).split("dataloader.py")[0], data_path, "valid")
+        self.rescale_range = rescale_range
         if mode == "dataset":
             if data_path == "":
                 raise ValueError("Need to provide a path to the dataset.")
@@ -64,7 +86,7 @@ class DataLoader:
             self.img2blocks = Img2Block(block_size, img_size, 1)
         else:
             self.mode = "synthetic"
-            self.decoder = SmoeDecoder(n_kernels, block_size, device)
+            self.decoder = SmoeDecoder(n_kernels, block_size, device, rescale_range)
 
     @property
     def training(self):
@@ -86,7 +108,7 @@ class DataLoader:
         thread.start()
         return q
     
-    def get_m_blocks_with_n_kernels(self, m: int, n: Optional[int] = None, vmin: float = -5, vmax: float = 5, include_zero: bool = True):
+    def get_m_blocks_with_n_kernels(self, m: int, n: Optional[int] = None, vmin: float = -15, vmax: float = 15, include_zero: bool = True):
         if n is None:
             n = self.n_kernels
         out = get_m_samples(m, n, kernels_outside=self.kernels_outside, negative_experts=self.negative_experts, vmin=vmin, vmax=vmax, include_zero=include_zero, device=self.device)
@@ -116,6 +138,8 @@ class DataLoader:
         elif self.mode == "dataset":
             try:
                 out: torch.Tensor = next(self._dataset_train)
+                if not len(out) > 0:
+                    return self.get(*args, **kwargs)
             except StopIteration:
                 self._dataset_train = self._get("train", None)
                 out: torch.Tensor = next(self._dataset_train)
