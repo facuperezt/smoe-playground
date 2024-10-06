@@ -19,8 +19,8 @@ def make_forward_rescaling_hook(original_data_range: Tuple[int, int], rescale_da
     len_original_scale = max_value_original - min_value_original
     rescale_factor = len_rescaled_scale/len_original_scale
     if pre_hook:
-        def _rescaling_forward_pre_hook(module: torch.nn.Module, input_tensor: torch.Tensor) -> torch.Tensor:
-            rescaled_input_tensor = (input_tensor*rescale_factor) + min_value_rescaled
+        def _rescaling_forward_pre_hook(module: torch.nn.Module, input_tensor: Tuple[torch.Tensor]) -> torch.Tensor:
+            rescaled_input_tensor = (input_tensor[0]*rescale_factor) + min_value_rescaled
             return rescaled_input_tensor
         return _rescaling_forward_pre_hook
     def _rescaling_forward_hook(module: torch.nn.Module, input_tensor: torch.Tensor, output_tensor: torch.Tensor) -> torch.Tensor:
@@ -40,7 +40,7 @@ def train_with_synth_data(model: SmoeModel, run_cfg: Dict[str, Any], num_blocks:
     trainer = TrainWithSyntheticData(model, num_blocks=num_blocks, rescale_range=rescale_data_range)
     run_name = run_cfg.get("name", "")
     try:
-        trainer.train({**run_cfg}, "disabled")
+        trainer.train({**run_cfg}, "online")
     except KeyboardInterrupt as e:
         print("Interrupted training manually, going to next model :)")
     finally:
@@ -65,7 +65,7 @@ def finetune_with_real_data(model: SmoeModel, run_cfg: Dict[str, Any], batch_siz
     trainer = TrainWithRealData(model, batch_size=batch_size, rescale_range=rescale_data_range)
     run_name = run_cfg.get("name", "")
     try:
-        trainer.train({**run_cfg}, "disabled")
+        trainer.train({**run_cfg}, "online")
     except KeyboardInterrupt as e:
         print("Interrupted training manually, going to next model :)")
     finally:
@@ -87,8 +87,8 @@ if __name__ == "__main__":
         train_config: Dict[str, Any] = json.load(f)
     for model_class in [ResNet]:
         model_class: SmoeModel
-        for block_size in [8, 16]:
-            for n_kernels in range(3, 5):
+        for block_size in [8, 16, 32]:
+            for n_kernels in range(2, 5):
                 tmp_file_path = os.path.join(tempfile.gettempdir(), "temp_config_training_smoe_playground.json")
                 with open(os.path.join(model_class._saves_path.replace(r"saves", "configs"), "base.json"), "r") as base_cfg:
                     adapted_cfg = json.load(base_cfg)

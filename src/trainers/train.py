@@ -48,7 +48,7 @@ class Trainer:
                 self.best_eval_recon = eval_recon
             wandb.log({"loss": loss.item(), **logging, "learning_rate": sched_lr.get_lr()[0], "Eval Reconstruction Loss": eval_loss})
             optim.step()
-            sched_lr.step(loss.item())
+            sched_lr.step(eval_loss)
             pbar.update(epoch - pbar.n + 1)
             pbar.desc = f"train_loss: {loss.item():.5f} - eval_loss: {eval_loss:.5f}"
 
@@ -61,9 +61,12 @@ class Trainer:
                 eval_input = self.eval_input
             if best_eval_recon is None:
                 best_eval_recon =  self.best_eval_recon
-            if wandb.run is not None:
+            if wandb.run is not None: # and not isinstance(wandb.run, wandb.sdk.lib.disabled.RunDisabled):
+                shape = Block2Img.__bases__[0]._last_unfolded_shape.clone()
+                Block2Img.__bases__[0]._last_unfolded_shape[0] = 1
                 wandb.log({"Eval Image": wandb.Image(self.blocks2img(eval_input).squeeze().cpu().numpy()),
                         "Eval Reconstruction": wandb.Image(self.blocks2img(best_eval_recon).squeeze().numpy())})
+                Block2Img.__bases__[0]._last_unfolded_shape = shape
         except Exception as e:
             # TODO: Investigate the kind of errors this could throw (not defined for the self methods and if the tensors have wrong shape probs)
             print("Logging Image failed for SOME reason. Catching the error and printing it to avoid stuff crashing. BAD PRACTICE!")
