@@ -46,7 +46,7 @@ class VQVAE_Simple(SmoeModel):
         return decoded_images, codebook_indices, q_loss
 
     def reconstruct_input(self, input: torch.Tensor) -> torch.Tensor:
-        return self.forward(input)[0]
+        return self(input)[0]
 
     def encode(self, imgs):
         encoded_images = self.encoder(imgs)
