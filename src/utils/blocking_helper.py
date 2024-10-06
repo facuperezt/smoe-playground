@@ -194,7 +194,7 @@ class BlockImgBlock(torch.nn.Module):
         patches = x.unfold(1, kc, dc).unfold(2, kh, dh).unfold(3, kw, dw)
         unfold_shape = patches.size()
         patches = patches.reshape(unfold_shape[0]*unfold_shape[1]*unfold_shape[2]*unfold_shape[3], unfold_shape[4], unfold_shape[5], unfold_shape[6])
-        BlockImgBlock._last_unfolded_shape = unfold_shape
+        BlockImgBlock._last_unfolded_shape = torch.tensor(unfold_shape)
         # print(unfold_shape)
         return patches
 

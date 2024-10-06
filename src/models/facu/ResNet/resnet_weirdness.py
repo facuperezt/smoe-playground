@@ -38,7 +38,8 @@ class ResNetWeirdness(SmoeModel):
         return x
 
     def reconstruct_input(self, input: torch.Tensor) -> torch.Tensor:
-        return self.forward(input)
+        # Need to go through the __call__ method for hooks to work properly
+        return self(input)
     
     def loss(self, input: torch.Tensor, output: torch.Tensor, extra_information: torch.Tensor) -> Dict[str, Union[torch.Tensor, Any]]:
         batch_reshape = lambda x: x.reshape((*x.shape[:2], -1)) 
