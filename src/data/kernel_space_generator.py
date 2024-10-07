@@ -85,10 +85,20 @@ def get_m_samples_with_n_kernels_mp(m: int, n: int, pad: float = 0.0, negative_e
 #%%
 
 if __name__ == "__main__":
-    n_kernels = 4
-    block_size = 128
-    t = sample_n_kernels(vmin=-block_size/5, vmax=block_size/5, n=n_kernels, negative_experts=True, include_zero=True)
+    # n_kernels = 4
+    # block_size = 128
+    # t = sample_n_kernels(vmin=-block_size/5, vmax=block_size/5, n=n_kernels, negative_experts=True, include_zero=True)
     
-    decoder = SmoeDecoder(n_kernels, block_size)
-    plot_block_with_kernels(t, decoder(t.view(1, -1)).squeeze(), n_kernels, block_size)
+    # plot_block_with_kernels(t, decoder(t.view(1, -1)).squeeze(), n_kernels, block_size)
+    _m = 10
+    for n in range(1,5):
+        samples = get_m_samples(900, n, False, False, vmin=-_m, vmax=_m)
+        decoder = SmoeDecoder(n, 8)
+        samples = decoder(samples).detach().numpy()
+        fig, axs = plt.subplots(3, 3, figsize=(4, 5))
+        fig.suptitle(f"n_kernels={n}")
+        for sample, ax in zip(samples, axs.ravel()):
+            ax.imshow(sample.squeeze(), cmap="gray", vmin=0, vmax=1)
+            ax.axis("off")
+        print(samples.min(), samples.max())
 # %%

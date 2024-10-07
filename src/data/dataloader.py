@@ -108,7 +108,7 @@ class DataLoader:
         thread.start()
         return q
     
-    def get_m_blocks_with_n_kernels(self, m: int, n: Optional[int] = None, vmin: float = -15, vmax: float = 15, include_zero: bool = True):
+    def get_m_blocks_with_n_kernels(self, m: int, n: Optional[int] = None, vmin: float = -10, vmax: float = 10, include_zero: bool = True):
         if n is None:
             n = self.n_kernels
         out = get_m_samples(m, n, kernels_outside=self.kernels_outside, negative_experts=self.negative_experts, vmin=vmin, vmax=vmax, include_zero=include_zero, device=self.device)
