@@ -1,3 +1,6 @@
+# Ignore local gitignore
+src/.gitignore
+
 # wandb
 wandb
 
