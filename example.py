@@ -4,7 +4,7 @@ import json
 import os
 import shutil
 import tempfile
-from typing import Any, Callable, Dict, Tuple
+from typing import Any, Callable, Dict, Tuple, Union
 import torch
 from src.models.base_model import SmoeModel
 from src.models import VariationalAutoencoder, ConvolutionalAutoencoder, ResNet, VqVae, Elvira2023Small, Elvira2023Full, Vgg16
@@ -28,19 +28,29 @@ def make_forward_rescaling_hook(original_data_range: Tuple[int, int], rescale_da
         return rescaled_output_tensor 
     return _rescaling_forward_hook
 
-def analyse_model_size(model: SmoeModel):
+def analyse_model_size(model: SmoeModel, verbose: bool = True):
     params = sum(p.numel() for p in model.parameters())*1e-6
     gigs = sum(p.numel()*p.element_size() for p in model.parameters())*1e-9
-    print(f"Model '{model.__class__.__name__}' has {params:.3f} million parameters.\nModel size: {gigs:.3f}GB")
+    if verbose:
+        print(f"Model '{model.__class__.__name__}' has {params:.3f} million parameters.\nModel size: {gigs:.3f}GB")
+    return gigs
 
 def get_class_name(instance) -> str:
     return repr(instance.__class__).strip("'>").split(".")[-1]
 
-def train_with_synth_data(model: SmoeModel, run_cfg: Dict[str, Any], num_blocks: int = 1000, rescale_data_range: Tuple[int, int] = (0, 1)):
+def train_with_synth_data(model: SmoeModel, run_cfg: Dict[str, Any], num_blocks: Union[int, str] = 1000, rescale_data_range: Tuple[int, int] = (0, 1)):
+    if isinstance(num_blocks, str):
+        assert num_blocks.endswith("GB"), "num_blocks needs to be an amount of GB of VRAM if its not an int"
+        vram = float(num_blocks.strip("GB"))
+        model_mem = analyse_model_size(model, verbose=False) * 4  # Approx needed for Adam backprop
+        rest_vram = vram - model_mem
+        mem_per_block = model.block_size**2 * torch.float32.itemsize * 1e-6
+        can_fit_blocks = rest_vram/3.5//mem_per_block
+        num_blocks = int(can_fit_blocks)
     trainer = TrainWithSyntheticData(model, num_blocks=num_blocks, rescale_range=rescale_data_range)
     run_name = run_cfg.get("name", "")
     try:
-        trainer.train({**run_cfg}, "online")
+        trainer.train({**run_cfg}, wandb_mode=wandb_mode)
     except KeyboardInterrupt as e:
         print("Interrupted training manually, going to next model :)")
     finally:
@@ -57,15 +67,23 @@ def train_with_synth_data(model: SmoeModel, run_cfg: Dict[str, Any], num_blocks:
                 shutil.move(src=os.path.join(current_run_path, checkpoint), dst=os.path.join(model.saves_path, path, checkpoint))
             shutil.rmtree(current_run_path)
 
-def finetune_with_real_data(model: SmoeModel, run_cfg: Dict[str, Any], batch_size: int = 15, rescale_data_range: Tuple[int, int] = (0, 1)):
+def finetune_with_real_data(model: SmoeModel, run_cfg: Dict[str, Any], batch_size: Union[int, str] = 15, rescale_data_range: Tuple[int, int] = (0, 1)):
+    if isinstance(batch_size, str):
+        assert batch_size.endswith("GB"), "num_blocks needs to be an amount of GB of VRAM if its not an int"
+        vram = float(batch_size.strip("GB"))
+        model_mem = analyse_model_size(model, verbose=False) * 4  # Approx needed for Adam backprop
+        rest_vram = vram - model_mem
+        mem_per_block = 384**2 * torch.float32.itemsize * 1e-6  # 384 is img size, hardcoded for now cause why not
+        can_fit_blocks = rest_vram/3//mem_per_block
+        batch_size = int(can_fit_blocks)
     load_from = run_cfg.get("load_model_from", "")
-    if load_from == "":
-        load_from = f'{get_class_name(model)}_<latest>_synth_data'
-    model.load_model(load_from)
+    if load_from != "":
+        # load_from = f'{get_class_name(model)}_<latest>_synth_data'
+        model.load_model(load_from)
     trainer = TrainWithRealData(model, batch_size=batch_size, rescale_range=rescale_data_range)
     run_name = run_cfg.get("name", "")
     try:
-        trainer.train({**run_cfg}, "online")
+        trainer.train({**run_cfg}, wandb_mode=wandb_mode)
     except KeyboardInterrupt as e:
         print("Interrupted training manually, going to next model :)")
     finally:
@@ -83,11 +101,12 @@ def finetune_with_real_data(model: SmoeModel, run_cfg: Dict[str, Any], batch_siz
             shutil.rmtree(current_run_path)
 
 if __name__ == "__main__":
+    wandb_mode = "online"
     with open("src/trainers/configs/simple_training.json", "r") as f:
         train_config: Dict[str, Any] = json.load(f)
     for model_class in [ResNet]:
         model_class: SmoeModel
-        for block_size in [16, 32]:
+        for block_size in [64]:
             for n_kernels in range(2, 5):
                 tmp_file_path = os.path.join(tempfile.gettempdir(), "temp_config_training_smoe_playground.json")
                 with open(os.path.join(model_class._saves_path.replace(r"saves", "configs"), "base.json"), "r") as base_cfg:
@@ -106,12 +125,12 @@ if __name__ == "__main__":
                 train_with_synth_data(model, run_cfg={
                     **train_config["synth"],
                     "name": f"{model.__class__.__name__}_{n_kernels}_k_{block_size}_bs_synth"
-                    }, num_blocks=500)
+                    }, num_blocks="6GB")
                 finetune_with_real_data(model, run_cfg={
                     **train_config["real"],
                     "load_model_from": f"{model.__class__.__name__}_{n_kernels}_k_{block_size}_bs_synth_<latest>",
                     "name": f"{model.__class__.__name__}_{n_kernels}_k_{block_size}_bs_real_ft"
-                    }, batch_size=4)
+                    }, batch_size="6GB")
                 del model
                 gc.collect()
                 torch.cuda.empty_cache()

@@ -19,10 +19,10 @@
         "learning_rate": 5e-6,
         "epochs": 3e3,
         "scheduler_configs": {
-            "warmup_length": 200,
+            "warmup_length": 2,
             "min_lr": 5e-8,
-            "patience": 10,
-            "factor": 8e-3
+            "patience": 1,
+            "factor": 8e-1
         }
     },
     "original_data_range": [0, 1],
