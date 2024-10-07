@@ -7,7 +7,7 @@ import tempfile
 from typing import Any, Callable, Dict, Tuple, Union
 import torch
 from src.models.base_model import SmoeModel
-from src.models import VariationalAutoencoder, ConvolutionalAutoencoder, ResNet, VqVae, Elvira2023Small, Elvira2023Full, Vgg16
+from src.models import VariationalAutoencoder, ConvolutionalAutoencoder, ResNet, VqVae, Elvira2023Small, Elvira2023Full, Vgg16, ResNetVae
 from src.trainers import TrainWithSyntheticData, TrainWithRealData
 
 def make_forward_rescaling_hook(original_data_range: Tuple[int, int], rescale_data_range: Tuple[int, int], pre_hook: bool) -> Callable:
@@ -24,7 +24,12 @@ def make_forward_rescaling_hook(original_data_range: Tuple[int, int], rescale_da
             return rescaled_input_tensor
         return _rescaling_forward_pre_hook
     def _rescaling_forward_hook(module: torch.nn.Module, input_tensor: torch.Tensor, output_tensor: torch.Tensor) -> torch.Tensor:
+        rest = None
+        if isinstance(output_tensor, tuple):
+            output_tensor, *rest = output_tensor
         rescaled_output_tensor = (output_tensor - min_value_rescaled)/rescale_factor
+        if rest is not None:
+            rescaled_output_tensor = (rescaled_output_tensor, *rest)
         return rescaled_output_tensor 
     return _rescaling_forward_hook
 
@@ -101,10 +106,10 @@ def finetune_with_real_data(model: SmoeModel, run_cfg: Dict[str, Any], batch_siz
             shutil.rmtree(current_run_path)
 
 if __name__ == "__main__":
-    wandb_mode = "online"
+    wandb_mode = "disabled"
     with open("src/trainers/configs/simple_training_local.json", "r") as f:
         train_config: Dict[str, Any] = json.load(f)
-    for model_class in [ResNet]:
+    for model_class in [ResNetVae]:
         model_class: SmoeModel
         for block_size in [8, 16, 32]:
             for n_kernels in range(2, 5):
