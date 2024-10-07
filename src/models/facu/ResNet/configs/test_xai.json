@@ -2,5 +2,8 @@
     "smoe_configs": {
         "n_kernels": 4,
         "block_size": 8
+    },
+    "loss_configs": {
+        "beta": 1e-4
     }
 }
