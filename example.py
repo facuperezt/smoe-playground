@@ -102,7 +102,7 @@ def finetune_with_real_data(model: SmoeModel, run_cfg: Dict[str, Any], batch_siz
 
 if __name__ == "__main__":
     wandb_mode = "online"
-    with open("src/trainers/configs/simple_training.json", "r") as f:
+    with open("src/trainers/configs/simple_training_local.json", "r") as f:
         train_config: Dict[str, Any] = json.load(f)
     for model_class in [ResNet]:
         model_class: SmoeModel
