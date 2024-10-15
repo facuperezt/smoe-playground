@@ -21,7 +21,7 @@ class Trainer:
         self._get_eval_data = None
 
     def train(self, cfg: Dict[str, Any], wandb_mode: str = "disabled"):
-        run = wandb.init(
+        self.run = wandb.init(
             project=cfg.pop("project"),
             notes=cfg.pop("notes", ""),
             tags=cfg.pop("tags", ""),
@@ -52,7 +52,7 @@ class Trainer:
             pbar.update(epoch - pbar.n + 1)
             pbar.desc = f"train_loss: {loss.item():.5f} - eval_loss: {eval_loss:.5f}"
 
-        run.finish()
+        self.run.finish()
         return self.model
 
     def log_images(self, eval_input: Optional[torch.Tensor] = None, best_eval_recon: Optional[torch.Tensor] = None) -> None:
@@ -100,7 +100,7 @@ class TrainWithSyntheticData(Trainer):
         self.dataloader = DataLoader("synthetic", self.model.n_kernels, self.model.block_size, "professional_photos", img_size, rescale_range=rescale_range)  # generate synthetic data, needs a dataset path to know which validation pic to use
         self.img2blocks = Img2Block(self.model.block_size, img_size)
         self.blocks2img = Block2Img(self.model.block_size, img_size)
-        self._get_training_data = lambda: self.dataloader.get(m=num_blocks)
+        self._get_training_data = lambda: self.dataloader.get(m=num_blocks, gaussian_sampling_steering_kernels=True, vmin=-7, vmax=7)
         self._get_eval_data = lambda: self.img2blocks(self.dataloader.get_valid_pic())
 
 class TrainWithRealData(Trainer):

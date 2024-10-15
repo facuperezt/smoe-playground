@@ -108,10 +108,10 @@ class DataLoader:
         thread.start()
         return q
     
-    def get_m_blocks_with_n_kernels(self, m: int, n: Optional[int] = None, vmin: float = -10, vmax: float = 10, include_zero: bool = True):
+    def get_m_blocks_with_n_kernels(self, m: int, n: Optional[int] = None, vmin: float = -7, vmax: float = 7, include_zero: bool = True, gaussian_sampling_steering_kernels: bool = False):
         if n is None:
             n = self.n_kernels
-        out = get_m_samples(m, n, kernels_outside=self.kernels_outside, negative_experts=self.negative_experts, vmin=vmin, vmax=vmax, include_zero=include_zero, device=self.device)
+        out = get_m_samples(m, n, kernels_outside=self.kernels_outside, negative_experts=self.negative_experts, vmin=vmin, vmax=vmax, include_zero=include_zero, use_gaussian_chol=gaussian_sampling_steering_kernels, device=self.device)
         return out
 
     def _get(self, data: str = "train", limit_to: int = None):
