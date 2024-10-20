@@ -94,7 +94,7 @@ class SmoeModel(torch.nn.Module):
             path (str): Full path or name of file in saves directory
         """
         if os.path.isdir(os.path.dirname(path)):
-            self.load_state_dict(torch.load(path))
+            self.load_state_dict(torch.load(os.path.join(path, "state_dict.pth")))
             return
         current_path = os.path.join(self.saves_path, path)
         if "<latest>" in path:
