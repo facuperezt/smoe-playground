@@ -1,0 +1,3 @@
+[submodule "GMM-Visualization"]
+	path = GMM-Visualization
+	url = git@github.com:ChenTaHung/GMM-Visualization.git
