@@ -10,6 +10,7 @@ gifs/
 **.pth
 **.png
 **.pkl
+**/*.mp4
 
 
 # Model saves
